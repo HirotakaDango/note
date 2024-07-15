@@ -26,16 +26,20 @@
     <div class="w-100">
 
       <!-- All Notes View -->
-      <dih1 class="container mb-5" id="allNotesView">
+      <div class="container mb-5" id="allNotesView">
         <h1 class="my-3">All Notes</h1>
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <button id="newNoteBtn" class="btn btn-primary fw-medium"><i class="bi bi-plus-circle"></i> New Note</button>
-          <select id="sortSelect" class="form-select fw-medium" style="width: auto;">
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-          </select>
+          <button id="newNoteBtn" class="btn btn-primary fw-medium me-auto"><i class="bi bi-plus-circle"></i> New Note</button>
+          <div class="btn-group ms-auto">
+            <button id="exportBtn" class="btn btn-secondary fw-medium"><i class="bi bi-download"></i> Export</button>
+            <button id="importBtn" class="btn btn-secondary fw-medium"><i class="bi bi-upload"></i> Import</button>
+          </div>
         </div>
         <input id="searchInput" class="form-control rounded-pill mb-3 w-100" type="text" placeholder="🔍 Search...">
+        <select id="sortSelect" class="form-select fw-medium mb-3" style="width: auto;">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+        </select>
         <div id="noteList" class="list-group"></div>
       </div>
 
@@ -53,6 +57,8 @@
       </div>
     </div>
 
+    <input type="file" id="importInput" style="display: none;" accept=".json">
+
     <script>
       const allNotesView = document.getElementById('allNotesView');
       const singleNoteView = document.getElementById('singleNoteView');
@@ -65,6 +71,9 @@
       const deleteBtn = document.getElementById('deleteBtn');
       const backBtn = document.getElementById('backBtn');
       const searchInput = document.getElementById('searchInput');
+      const exportBtn = document.getElementById('exportBtn');
+      const importBtn = document.getElementById('importBtn');
+      const importInput = document.getElementById('importInput');
 
       let notes = {};
       let currentNote = null;
@@ -92,6 +101,9 @@
         clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(saveNote, 500);
       });
+      exportBtn.addEventListener('click', exportNotes);
+      importBtn.addEventListener('click', () => importInput.click());
+      importInput.addEventListener('change', importNotes);
 
       function createNote() {
         const noteId = Date.now().toString();
@@ -162,12 +174,12 @@
         for (const [noteId, note] of sortedNotes) {
           const noteElem = document.createElement('a');
           noteElem.innerHTML = `
-            <strong>${note.title}</strong><br>
+            <h6 class="text-wrap">${note.title}</h6>
             <small class="text-muted">${new Date(note.date).toLocaleDateString('en-US')}</small>
             <button class="btn border-0 btn-sm delete-btn"><i class="bi bi-trash3-fill link-body-emphasis"></i></button>
           `;
           noteElem.href = '#';
-          noteElem.className = 'note-item p-3 rounded-4 border-0 bg-body-tertiary text-decoration-none text-white my-1 d-block position-relative';
+          noteElem.className = 'note-item card p-3 rounded-4 border-0 bg-body-tertiary text-decoration-none text-white my-1 d-block position-relative text-wrap';
           noteElem.addEventListener('click', (e) => {
             if (!e.target.classList.contains('delete-btn')) {
               e.preventDefault();
@@ -180,6 +192,35 @@
             deleteNote(noteId);
           });
           noteList.appendChild(noteElem);
+        }
+      }
+
+      function exportNotes() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notes));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "notes_export.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      }
+
+      function importNotes(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            try {
+              const importedNotes = JSON.parse(e.target.result);
+              notes = { ...notes, ...importedNotes };
+              saveNotes();
+              updateNoteList();
+              alert('Notes imported successfully!');
+            } catch (error) {
+              alert('Error importing notes. Please make sure the file is a valid JSON export.');
+            }
+          };
+          reader.readAsText(file);
         }
       }
 
