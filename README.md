@@ -1,3 +1,3 @@
 # note
 
-Private Note-taking App using JavaScript
+Private Note-taking App using JavaScript.
