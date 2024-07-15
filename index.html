@@ -22,10 +22,10 @@
     </style>
   </head>
   <body>
-    <div class="container mb-5">
+    <div class="w-100">
 
       <!-- All Notes View -->
-      <div id="allNotesView">
+      <dih1 class="container mb-5" id="allNotesView">
         <h1 class="my-3">All Notes</h1>
         <div class="d-flex justify-content-between align-items-center mb-3">
           <button id="newNoteBtn" class="btn btn-primary fw-medium"><i class="bi bi-plus-circle"></i> New Note</button>
@@ -40,13 +40,15 @@
 
       <!-- Single Note View -->
       <div id="singleNoteView" style="display: none;">
-        <div class="d-flex justify-content-between my-3">
-          <button id="backBtn" class="btn border-0 p-0"><i class="bi bi-chevron-left link-body-emphasis" style="-webkit-text-stroke: 2px;"></i></button>
-          <button id="deleteBtn" class="btn border-0 p-0"><i class="bi bi-trash3-fill link-body-emphasis"></i></button>
+        <div class="fixed-top bg-dark-subtle px-3 py-2">
+          <div class="container d-flex justify-content-between align-items-center">
+            <button id="backBtn" class="btn border-0 p-0"><i class="bi bi-chevron-left link-body-emphasis" style="-webkit-text-stroke: 2px;"></i></button>
+            <h6 id="noteDate" class="text-muted my-auto"></h6>
+            <button id="deleteBtn" class="btn border-0 p-0"><i class="bi bi-trash3-fill link-body-emphasis"></i></button>
+          </div>
         </div>
         <h2 id="noteTitle" class="mb-3 d-none"></h2>
-        <p id="noteDate" class="text-muted mb-2"></p>
-        <textarea id="noteContent" class="form-control mb-5 rounded-4 bg-body-tertiary shadow border-0 vh-100"></textarea>
+        <textarea id="noteContent" class="container form-control rounded-0 p-3 pt-5 border-0 vh-100"></textarea>
       </div>
     </div>
 
