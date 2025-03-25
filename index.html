@@ -1,56 +1,87 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NoteTakeApp</title>
-    <link rel="icon" type="image/svg" href="https://icons.getbootstrap.com/assets/icons/code-slash.svg">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="icon" type="image/svg" href="https://icons.getbootstrap.com/assets/icons/code-slash.svg" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
     <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="NoteTakeApp">
-    <meta property="og:description" content="This is a simple note taking app.">
-    <meta property="og:image" content="https://icons.getbootstrap.com/assets/icons/code-slash.svg">
+    <meta property="og:url" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="NoteTakeApp" />
+    <meta property="og:description" content="This is a simple note taking app." />
+    <meta property="og:image" content="https://icons.getbootstrap.com/assets/icons/code-slash.svg" />
 
     <!-- Twitter Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="f1a9ced3-60da-495a-b8f3-67e6bdf052b2-00-1bbkzqvmzbng4.riker.replit.dev">
-    <meta property="twitter:url" content="">
-    <meta name="twitter:title" content="NoteTakeApp">
-    <meta name="twitter:description" content="This is a simple note taking app.">
-    <meta name="twitter:image" content="https://icons.getbootstrap.com/assets/icons/code-slash.svg">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="f1a9ced3-60da-495a-b8f3-67e6bdf052b2-00-1bbkzqvmzbng4.riker.replit.dev" />
+    <meta property="twitter:url" content="" />
+    <meta name="twitter:title" content="NoteTakeApp" />
+    <meta name="twitter:description" content="This is a simple note taking app." />
+    <meta name="twitter:image" content="https://icons.getbootstrap.com/assets/icons/code-slash.svg" />
     <style>
-      .note-item {
-        position: relative;
+      .note-card {
+        cursor: pointer;
+        transition: transform 0.2s;
       }
-      .delete-btn {
-        position: absolute;
-        top: 3px;
-        right: 3px;
-        display: none;
+      .note-card:hover {
+        transform: scale(1.02);
       }
-      .note-item:hover .delete-btn {
-        display: block;
+      .note-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .action-btn {
+        background: none;
+        border: none;
+        color: inherit;
       }
     </style>
   </head>
   <body>
     <div class="w-100">
-
       <!-- All Notes View -->
       <div class="container mb-5" id="allNotesView">
-        <h1 class="my-3">All Notes</h1>
+        <h1 class="my-3">Notes</h1>
+
+        <!-- Categories Navigation -->
+        <ul class="nav nav-tabs mb-3">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" id="allNotesTab">All Notes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="favoritesTab">Favorites</a>
+          </li>
+        </ul>
+
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <button id="newNoteBtn" class="btn btn-primary fw-medium me-auto"><i class="bi bi-plus-circle"></i> New Note</button>
+          <button id="newNoteBtn" class="btn btn-primary fw-medium me-auto">
+            <i class="bi bi-plus-circle"></i> New Note
+          </button>
           <div class="btn-group ms-auto">
-            <button id="exportBtn" class="btn btn-secondary fw-medium"><i class="bi bi-download"></i> Export</button>
-            <button id="importBtn" class="btn btn-secondary fw-medium"><i class="bi bi-upload"></i> Import</button>
+            <button id="exportBtn" class="btn btn-secondary fw-medium">
+              <i class="bi bi-download"></i> Export
+            </button>
+            <button id="importBtn" class="btn btn-secondary fw-medium">
+              <i class="bi bi-upload"></i> Import
+            </button>
           </div>
         </div>
-        <input id="searchInput" class="form-control rounded-pill mb-3 w-100" type="text" placeholder="🔍 Search...">
+        <input
+          id="searchInput"
+          class="form-control rounded-pill mb-3 w-100"
+          type="text"
+          placeholder="🔍 Search..."
+        />
         <select id="sortSelect" class="form-select fw-medium mb-3" style="width: auto;">
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
@@ -61,16 +92,35 @@
       <!-- Single Note View -->
       <div id="singleNoteView" style="display: none;">
         <div class="container d-flex justify-content-between align-items-center bg-dark-subtle py-1">
-          <button id="backBtn" class="btn border-0"><i class="bi bi-chevron-left link-body-emphasis" style="-webkit-text-stroke: 2px;"></i></button>
-          <h6 id="noteDate" class="text-muted my-auto"></h6>
-          <button id="deleteSingleBtn" class="btn border-0"><i class="bi bi-trash3-fill link-body-emphasis"></i></button>
+          <div class="d-flex gap-3">
+            <button id="backBtn" class="btn border-0">
+              <i class="bi bi-chevron-left link-body-emphasis" style="-webkit-text-stroke: 2px;"></i>
+            </button>
+            <!-- Undo/Redo Buttons -->
+            <button id="undoBtn" class="btn border-0">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+          </div>
+          <h6 id="noteDate" class="text-muted mx-auto my-auto"></h6>
+          <div class="d-flex gap-3">
+            <button id="redoBtn" class="btn border-0">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button id="deleteSingleBtn" class="btn border-0">
+              <i class="bi bi-trash3-fill link-body-emphasis"></i>
+            </button>
+          </div>
         </div>
         <h2 id="noteTitle" class="d-none"></h2>
-        <textarea id="noteContent" style="height: calc(100svh - 44px); max-height: calc(100svh - 44px); min-height: calc(100svh - 44px); box-sizing: border-box;" class="container form-control rounded-0 p-4 border-0 bg-dark-subtle focus-ring focus-ring-dark"></textarea>
+        <textarea
+          id="noteContent"
+          style="height: calc(100svh - 44px); max-height: calc(100svh - 44px); min-height: calc(100svh - 44px); box-sizing: border-box;"
+          class="container form-control rounded-0 p-4 border-0 bg-dark-subtle focus-ring focus-ring-dark"
+        ></textarea>
       </div>
     </div>
 
-    <input type="file" id="importInput" style="display: none;" accept=".json">
+    <input type="file" id="importInput" style="display: none;" accept=".json" />
 
     <script>
       const allNotesView = document.getElementById('allNotesView');
@@ -87,19 +137,35 @@
       const exportBtn = document.getElementById('exportBtn');
       const importBtn = document.getElementById('importBtn');
       const importInput = document.getElementById('importInput');
+      const allNotesTab = document.getElementById('allNotesTab');
+      const favoritesTab = document.getElementById('favoritesTab');
+      const undoBtn = document.getElementById('undoBtn');
+      const redoBtn = document.getElementById('redoBtn');
 
       let notes = {};
       let currentNote = null;
       let autoSaveTimeout = null;
+      // For undo/redo functionality
+      let undoStack = [];
+      let redoStack = [];
+      let lastRecordedContent = '';
+
+      // Current category: "all" or "favorites"
+      let currentCategory = 'all';
 
       function htmlSpecialChars(str) {
         return str.replace(/[&<>"']/g, function(match) {
           switch (match) {
-            case '&': return '&amp;';
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '"': return '&quot;';
-            case "'": return '&#039;';
+            case '&':
+              return '&amp;';
+            case '<':
+              return '&lt;';
+            case '>':
+              return '&gt;';
+            case '"':
+              return '&quot;';
+            case "'":
+              return '&#039;';
           }
         });
       }
@@ -121,7 +187,7 @@
           notes[currentNote].title = noteContent.value.split('\n')[0] || 'Untitled';
           notes[currentNote].date = new Date().toISOString();
           saveNotes();
-          noteTitle.textContent = htmlSpecialChars(notes[currentNote].title); // escaping title
+          noteTitle.textContent = htmlSpecialChars(notes[currentNote].title);
           noteDate.textContent = new Date(notes[currentNote].date).toLocaleDateString('en-US');
           updateNoteList();
         }
@@ -132,7 +198,8 @@
         notes[noteId] = {
           title: 'New Note',
           content: '',
-          date: new Date().toISOString()
+          date: new Date().toISOString(),
+          favorite: false,
         };
         currentNote = noteId;
         saveNotes();
@@ -161,6 +228,12 @@
         }
       }
 
+      function toggleFavorite(noteId) {
+        notes[noteId].favorite = !notes[noteId].favorite;
+        saveNotes();
+        updateNoteList();
+      }
+
       function showAllNotes() {
         allNotesView.style.display = 'block';
         singleNoteView.style.display = 'none';
@@ -172,45 +245,79 @@
         allNotesView.style.display = 'none';
         singleNoteView.style.display = 'block';
         if (currentNote) {
-          noteTitle.textContent = htmlSpecialChars(notes[currentNote].title); // escaping title
+          noteTitle.textContent = htmlSpecialChars(notes[currentNote].title);
           noteDate.textContent = new Date(notes[currentNote].date).toLocaleDateString('en-US');
           noteContent.value = notes[currentNote].content;
+          // Reset undo/redo stacks when opening a note
+          undoStack = [];
+          redoStack = [];
+          lastRecordedContent = noteContent.value;
         }
       }
 
       function updateNoteList() {
         noteList.innerHTML = '';
         const query = searchInput.value.toLowerCase();
-        const sortedNotes = Object.entries(notes).filter(([id, note]) =>
-          note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query)
-        ).sort((a, b) => {
+        let filteredNotes = Object.entries(notes).filter(([id, note]) =>
+          note.title.toLowerCase().includes(query) ||
+          note.content.toLowerCase().includes(query)
+        );
+        // Filter for favorites if that category is active
+        if (currentCategory === 'favorites') {
+          filteredNotes = filteredNotes.filter(([id, note]) => note.favorite);
+        }
+        const sortedNotes = filteredNotes.sort((a, b) => {
           const dateA = new Date(a[1].date);
           const dateB = new Date(b[1].date);
           return sortSelect.value === 'newest' ? dateB - dateA : dateA - dateB;
         });
 
-        for (const [noteId, note] of sortedNotes) {
-          const noteElem = document.createElement('a');
-          noteElem.innerHTML = `
-            <h6 class="text-wrap">${htmlSpecialChars(note.title)}</h6> <!-- escaping title -->
-            <small class="text-muted">${new Date(note.date).toLocaleDateString('en-US')}</small>
-            <button class="btn border-0 btn-sm delete-btn"><i class="bi bi-trash3-fill link-body-emphasis"></i></button>
+        sortedNotes.forEach(([noteId, note]) => {
+          const card = document.createElement('div');
+          card.className = 'card bg-body-tertiary mb-3 note-card border-0 rounded-3';
+          card.style.cursor = 'pointer';
+          card.innerHTML = `
+            <div class="card-body">
+              <div class="note-header">
+                <small class="fw-medium">${new Date(note.date).toLocaleDateString('en-US')}</small>
+                <div>
+                  <button class="action-btn favorite-btn">
+                    <i class="bi ${note.favorite ? 'bi-star-fill' : 'bi-star'}"></i>
+                  </button>
+                  <button class="action-btn delete-btn">
+                    <i class="bi bi-trash3-fill"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="mt-3">
+                ${htmlSpecialChars(note.content).substring(0,200)}
+                ${note.content.length > 200 ? '...' : ''}
+              </div>
+            </div>
           `;
-          noteElem.href = '#';
-          noteElem.className = 'note-item card card-body p-4 rounded-4 border-0 bg-body-tertiary text-decoration-none text-white my-1 d-block position-relative text-wrap';
-          noteElem.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('delete-btn')) {
-              e.preventDefault();
+
+          // Open note when clicking the card body (but not the buttons)
+          card.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
               currentNote = noteId;
               showSingleNote();
             }
           });
-          noteElem.querySelector('.delete-btn').addEventListener('click', (e) => {
+
+          // Favorite button
+          card.querySelector('.favorite-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFavorite(noteId);
+          });
+
+          // Delete button
+          card.querySelector('.delete-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             deleteNoteFromList(noteId);
           });
-          noteList.appendChild(noteElem);
-        }
+
+          noteList.appendChild(card);
+        });
       }
 
       function exportNotes() {
@@ -242,6 +349,55 @@
         }
       }
 
+      // Category tab event listeners
+      allNotesTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentCategory = 'all';
+        allNotesTab.classList.add('active');
+        favoritesTab.classList.remove('active');
+        updateNoteList();
+      });
+      favoritesTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        currentCategory = 'favorites';
+        favoritesTab.classList.add('active');
+        allNotesTab.classList.remove('active');
+        updateNoteList();
+      });
+
+      // Basic Undo/Redo implementation
+      noteContent.addEventListener('input', () => {
+        if (noteContent.value !== lastRecordedContent) {
+          undoStack.push(lastRecordedContent);
+          lastRecordedContent = noteContent.value;
+          // Clear redo stack after a new change
+          redoStack = [];
+        }
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(saveNote, 100);
+      });
+
+      undoBtn.addEventListener('click', () => {
+        if (undoStack.length > 0) {
+          const previousState = undoStack.pop();
+          // Push current state to redoStack before reverting
+          redoStack.push(noteContent.value);
+          noteContent.value = previousState;
+          lastRecordedContent = previousState;
+          saveNote();
+        }
+      });
+
+      redoBtn.addEventListener('click', () => {
+        if (redoStack.length > 0) {
+          const nextState = redoStack.pop();
+          undoStack.push(noteContent.value);
+          noteContent.value = nextState;
+          lastRecordedContent = nextState;
+          saveNote();
+        }
+      });
+
       loadNotes();
 
       newNoteBtn.addEventListener('click', createNote);
@@ -249,10 +405,6 @@
       backBtn.addEventListener('click', showAllNotes);
       sortSelect.addEventListener('change', updateNoteList);
       searchInput.addEventListener('input', updateNoteList);
-      noteContent.addEventListener('input', () => {
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(saveNote, 100); // Reduced delay for quicker updates
-      });
       exportBtn.addEventListener('click', exportNotes);
       importBtn.addEventListener('click', () => importInput.click());
       importInput.addEventListener('change', importNotes);
@@ -263,11 +415,16 @@
         navigator.serviceWorker.register('service-worker.js')
           .then(registration => {
             console.log('Service Worker registered with scope:', registration.scope);
-          }).catch(error => {
+          })
+          .catch(error => {
             console.log('Service Worker registration failed:', error);
           });
       }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>
