@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NoteTakeApp</title>
-    <link rel="icon" type="image/svg" href="https://icons.getbootstrap.com/assets/icons/code-slash.svg" />
+    <link rel="icon" type="image/svg+xml" href="https://icons.getbootstrap.com/assets/icons/code-slash.svg" />
+
+    <!-- Inline manifest via data URI -->
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22NoteTakeApp%22%2C%22short_name%22%3A%22NoteTakeApp%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23343a40%22%2C%22theme_color%22%3A%22%23343a40%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Ficons.getbootstrap.com%2Fassets%2Ficons%2Fcode-slash.svg%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D" />
+
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -22,11 +26,12 @@
 
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta property="twitter:domain" content="f1a9ced3-60da-495a-b8f3-67e6bdf052b2-00-1bbkzqvmzbng4.riker.replit.dev" />
+    <meta property="twitter:domain" content="yourdomain.com" />
     <meta property="twitter:url" content="" />
     <meta name="twitter:title" content="NoteTakeApp" />
     <meta name="twitter:description" content="This is a simple note taking app." />
     <meta name="twitter:image" content="https://icons.getbootstrap.com/assets/icons/code-slash.svg" />
+
     <style>
       .note-card {
         cursor: pointer;
@@ -411,8 +416,42 @@
 
       showAllNotes();
 
+      // Improved Service Worker registration via Blob with offline fallback
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
+        const swCode = `
+          const CACHE_NAME = 'notetakeapp-v1';
+          const urlsToCache = [
+            location.href,
+            'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+            'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
+            'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js'
+          ];
+          self.addEventListener('install', event => {
+            event.waitUntil(
+              caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+            );
+            self.skipWaiting();
+          });
+          self.addEventListener('activate', event => {
+            event.waitUntil(self.clients.claim());
+          });
+          self.addEventListener('fetch', event => {
+            event.respondWith(
+              fetch(event.request)
+                .then(response => {
+                  // Optionally update cache with fresh response.
+                  return response;
+                })
+                .catch(() => {
+                  return caches.match(event.request)
+                    .then(response => response || caches.match(location.href));
+                })
+            );
+          });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl)
           .then(registration => {
             console.log('Service Worker registered with scope:', registration.scope);
           })
