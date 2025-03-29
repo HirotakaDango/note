@@ -280,23 +280,26 @@
           card.className = 'card bg-body-tertiary mb-3 note-card border-0 rounded-3';
           card.style.cursor = 'pointer';
           card.innerHTML = `
-            <div class="card-body">
-              <div class="note-header">
-                <small class="fw-medium">${new Date(note.date).toLocaleDateString('en-US')}</small>
-                <div>
-                  <button class="action-btn favorite-btn">
-                    <i class="bi ${note.favorite ? 'bi-star-fill' : 'bi-star'}"></i>
-                  </button>
-                  <button class="action-btn delete-btn">
-                    <i class="bi bi-trash3-fill"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="mt-3">
-                ${htmlSpecialChars(note.content).substring(0,200)}
-                ${note.content.length > 200 ? '...' : ''}
-              </div>
-            </div>
+      <div class="card-body">
+        <div class="note-header">
+          <small class="fw-medium">${new Date(note.date).toLocaleDateString('en-US')}</small>
+          <div>
+            <button class="action-btn download-btn">
+              <i class="bi bi-download"></i>
+            </button>
+            <button class="action-btn favorite-btn">
+              <i class="bi ${note.favorite ? 'bi-star-fill' : 'bi-star'}"></i>
+            </button>
+            <button class="action-btn delete-btn">
+              <i class="bi bi-trash3-fill"></i>
+            </button>
+          </div>
+        </div>
+        <div class="mt-3">
+          ${htmlSpecialChars(note.content).substring(0,200)}
+          ${note.content.length > 200 ? '...' : ''}
+        </div>
+      </div>
           `;
 
           // Open note when clicking the card body (but not the buttons)
@@ -307,13 +310,39 @@
             }
           });
 
-          // Favorite button
+          // Download button event listener
+          card.querySelector('.download-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const content = note.content;
+            // Use the first sentence as title; here we split on the first period.
+            let firstSentence = content.split('.')[0].trim();
+            if (!firstSentence) {
+              firstSentence = "Untitled";
+            }
+            // Limit to a maximum of 4 words
+            let words = firstSentence.split(/\s+/).slice(0, 4).join(' ');
+            let defaultName = words || "Untitled";
+            // Prompt the user to rename the file
+            let customName = prompt("Enter filename:", defaultName);
+            // If user clicks Cancel (customName is null), do not download
+            if (customName === null) {
+              return;
+            }
+            const filename = `${customName}.txt`;
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+          });
+
+          // Favorite button event listener
           card.querySelector('.favorite-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             toggleFavorite(noteId);
           });
 
-          // Delete button
+          // Delete button event listener
           card.querySelector('.delete-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             deleteNoteFromList(noteId);
