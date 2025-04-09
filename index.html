@@ -56,7 +56,6 @@
     <div class="w-100">
       <!-- All Notes View -->
       <div class="container mb-5 mt-3" id="allNotesView">
-
         <div class="d-flex justify-content-between align-items-center mb-3">
           <button id="newNoteBtn" class="btn btn-primary fw-medium me-auto">
             <i class="bi bi-plus-circle"></i> New Note
@@ -125,6 +124,9 @@
 
     <input type="file" id="importInput" style="display: none;" accept=".json" />
 
+    <!-- Word Counter (initially hidden) -->
+    <div id="wordCounter" class="position-fixed bottom-0 end-0 fw-medium rounded-end-0 rounded-bottom-0 rounded-top-3 rounded-end-0 p-1" style="display: none; font-size: 12px;">Words: 0</div>
+
     <script>
       const allNotesView = document.getElementById('allNotesView');
       const singleNoteView = document.getElementById('singleNoteView');
@@ -144,6 +146,7 @@
       const favoritesTab = document.getElementById('favoritesTab');
       const undoBtn = document.getElementById('undoBtn');
       const redoBtn = document.getElementById('redoBtn');
+      const wordCounter = document.getElementById('wordCounter');
 
       let notes = {};
       let currentNote = null;
@@ -193,6 +196,7 @@
           noteTitle.textContent = htmlSpecialChars(notes[currentNote].title);
           noteDate.textContent = new Date(notes[currentNote].date).toLocaleDateString('en-US');
           updateNoteList();
+          updateWordCounter(); // Update counter after saving
         }
       }
 
@@ -207,6 +211,7 @@
         currentNote = noteId;
         saveNotes();
         showSingleNote();
+        updateWordCounter(); // Reset counter for new note
       }
 
       function deleteNote() {
@@ -242,11 +247,15 @@
         singleNoteView.style.display = 'none';
         currentNote = null;
         updateNoteList();
+        // Hide word counter on home view
+        wordCounter.style.display = 'none';
       }
 
       function showSingleNote() {
         allNotesView.style.display = 'none';
         singleNoteView.style.display = 'block';
+        // Display the word counter only in single note view
+        wordCounter.style.display = 'block';
         if (currentNote) {
           noteTitle.textContent = htmlSpecialChars(notes[currentNote].title);
           noteDate.textContent = new Date(notes[currentNote].date).toLocaleDateString('en-US');
@@ -255,6 +264,7 @@
           undoStack = [];
           redoStack = [];
           lastRecordedContent = noteContent.value;
+          updateWordCounter();
         }
       }
 
@@ -263,10 +273,8 @@
         if (navigator.clipboard && window.isSecureContext) {
           return navigator.clipboard.writeText(text);
         } else {
-          // Fallback: create a temporary textarea and use document.execCommand
           const textArea = document.createElement("textarea");
           textArea.value = text;
-          // Style the textarea to avoid affecting page layout or scrolling
           textArea.style.position = "fixed";
           textArea.style.top = "0";
           textArea.style.left = "0";
@@ -278,7 +286,6 @@
           textArea.style.boxShadow = "none";
           textArea.style.background = "transparent";
           document.body.appendChild(textArea);
-          // Use preventScroll if supported
           if (typeof textArea.focus === "function") {
             try {
               textArea.focus({ preventScroll: true });
@@ -309,7 +316,6 @@
           note.title.toLowerCase().includes(query) ||
           note.content.toLowerCase().includes(query)
         );
-        // Filter for favorites if that category is active
         if (currentCategory === 'favorites') {
           filteredNotes = filteredNotes.filter(([id, note]) => note.favorite);
         }
@@ -325,32 +331,31 @@
           card.style.cursor = 'pointer';
           card.style.position = 'relative';
           card.innerHTML = `
-      <div class="card-body">
-        <div class="note-header">
-          <small class="fw-medium">${new Date(note.date).toLocaleDateString('en-US')}</small>
-          <div>
-            <button class="action-btn copy-btn">
-              <i class="bi bi-copy"></i>
-            </button>
-            <button class="action-btn download-btn">
-              <i class="bi bi-download"></i>
-            </button>
-            <button class="action-btn favorite-btn">
-              <i class="bi ${note.favorite ? 'bi-star-fill' : 'bi-star'}"></i>
-            </button>
-            <button class="action-btn delete-btn">
-              <i class="bi bi-trash3-fill"></i>
-            </button>
-          </div>
-        </div>
-        <div class="mt-3">
-          ${htmlSpecialChars(note.content).substring(0,200)}
-          ${note.content.length > 200 ? '...' : ''}
-        </div>
-      </div>
+            <div class="card-body">
+              <div class="note-header">
+                <small class="fw-medium">${new Date(note.date).toLocaleDateString('en-US')}</small>
+                <div>
+                  <button class="action-btn copy-btn">
+                    <i class="bi bi-copy"></i>
+                  </button>
+                  <button class="action-btn download-btn">
+                    <i class="bi bi-download"></i>
+                  </button>
+                  <button class="action-btn favorite-btn">
+                    <i class="bi ${note.favorite ? 'bi-star-fill' : 'bi-star'}"></i>
+                  </button>
+                  <button class="action-btn delete-btn">
+                    <i class="bi bi-trash3-fill"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="mt-3">
+                ${htmlSpecialChars(note.content).substring(0,200)}
+                ${note.content.length > 200 ? '...' : ''}
+              </div>
+            </div>
           `;
 
-          // Open note when clicking the card body (but not the buttons)
           card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
               currentNote = noteId;
@@ -358,13 +363,11 @@
             }
           });
 
-          // Copy button event listener with indication and preventing scroll
           card.querySelector('.copy-btn').addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             copyTextToClipboard(note.content)
               .then(() => {
-                // Create a temporary "Copied!" indicator
                 const copyIndicator = document.createElement('span');
                 copyIndicator.textContent = 'Copied!';
                 copyIndicator.style.position = 'absolute';
@@ -385,21 +388,16 @@
               });
           });
 
-          // Download button event listener
           card.querySelector('.download-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             const content = note.content;
-            // Use the first sentence as title; here we split on the first period.
             let firstSentence = content.split('.')[0].trim();
             if (!firstSentence) {
               firstSentence = "Untitled";
             }
-            // Limit to a maximum of 4 words
             let words = firstSentence.split(/\s+/).slice(0, 4).join(' ');
             let defaultName = words || "Untitled";
-            // Prompt the user to rename the file
             let customName = prompt("Enter filename:", defaultName);
-            // If user clicks Cancel (customName is null), do not download
             if (customName === null) {
               return;
             }
@@ -411,13 +409,11 @@
             a.click();
           });
 
-          // Favorite button event listener
           card.querySelector('.favorite-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             toggleFavorite(noteId);
           });
 
-          // Delete button event listener
           card.querySelector('.delete-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             deleteNoteFromList(noteId);
@@ -456,6 +452,13 @@
         }
       }
 
+      // Word counter update function (called only in single note view)
+      function updateWordCounter() {
+        const text = noteContent.value;
+        const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+        wordCounter.textContent = 'Words: ' + words.length;
+      }
+
       // Category tab event listeners
       allNotesTab.addEventListener('click', (e) => {
         e.preventDefault();
@@ -477,21 +480,21 @@
         if (noteContent.value !== lastRecordedContent) {
           undoStack.push(lastRecordedContent);
           lastRecordedContent = noteContent.value;
-          // Clear redo stack after a new change
           redoStack = [];
         }
         clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(saveNote, 100);
+        updateWordCounter();
       });
 
       undoBtn.addEventListener('click', () => {
         if (undoStack.length > 0) {
           const previousState = undoStack.pop();
-          // Push current state to redoStack before reverting
           redoStack.push(noteContent.value);
           noteContent.value = previousState;
           lastRecordedContent = previousState;
           saveNote();
+          updateWordCounter();
         }
       });
 
@@ -502,6 +505,7 @@
           noteContent.value = nextState;
           lastRecordedContent = nextState;
           saveNote();
+          updateWordCounter();
         }
       });
 
@@ -518,7 +522,6 @@
 
       showAllNotes();
 
-      // Improved Service Worker registration via Blob with offline fallback
       if ('serviceWorker' in navigator) {
         const swCode = `
           const CACHE_NAME = 'notetakeapp-v1';
@@ -540,10 +543,7 @@
           self.addEventListener('fetch', event => {
             event.respondWith(
               fetch(event.request)
-                .then(response => {
-                  // Optionally update cache with fresh response.
-                  return response;
-                })
+                .then(response => response)
                 .catch(() => {
                   return caches.match(event.request)
                     .then(response => response || caches.match(location.href));
