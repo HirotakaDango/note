@@ -2,5 +2,4 @@
 
 Private Note-taking App using JavaScript.
 
-![chrome_screenshot_Mar 30, 2025 5_13_33 PM GMT+07_00](https://github.com/user-attachments/assets/747a30ac-ce1a-4f59-b664-8ec9f37e3860)
-
+![Screenshot 2025-05-02 10 39 56 PM](https://github.com/user-attachments/assets/194e417f-a760-4d57-a8fb-e04e2de585fe)
