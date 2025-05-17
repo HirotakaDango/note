@@ -3,6 +3,14 @@
 A simple, offline-capable note-taking web app built with HTML, JavaScript, and Bootstrap.  
 All notes are stored locally in your browser. No account or server required.
 
+
+## Screenshots
+
+![Screenshot](https://github.com/user-attachments/assets/61a43c9a-2328-4c95-9c77-4eb65c5b0bdf)
+![Screenshot](https://github.com/user-attachments/assets/90547e06-1a62-4625-bae6-d5d124ab4391)
+
+
+
 ## Features
 
 - **Create, Edit, and Delete Notes**  
@@ -33,8 +41,3 @@ All notes are stored locally in your browser. No account or server required.
 
 2. **[Optional] Install as an App**
    - Look for the "Install App" button in the lower left, or use your browser's "Add to Home Screen" feature.
-
-## Screenshots
-
-![Screenshot](https://github.com/user-attachments/assets/2dcf500d-ca72-463f-bd3c-2b7330334714)
-![Screenshot](https://github.com/user-attachments/assets/0a1fae39-fbb6-4bcb-8fc1-c8827f7ff401)
