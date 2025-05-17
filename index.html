@@ -301,14 +301,15 @@
           <div class="d-flex justify-content-between align-items-center">
             <div class="select-all-container align-items-center">
               <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
-              <label for="selectAllCheckbox" class="mx-2">Select All</label>
+              <label for="selectAllCheckbox" class="mx-2 d-none">Select All</label>
+              (<label id="selectedCount">0</label> selected)
             </div>
             <div>
               <button id="categorizeSelectedBtn" class="btn btn-secondary btn-sm ms-2 categorize-selected-btn" title="Set Category">
                 <i class="bi bi-tags"></i> Categorize
               </button>
               <button id="deleteSelectedBtn" class="btn btn-danger btn-sm ms-2">
-                <i class="bi bi-trash3"></i> Delete (<span id="selectedCount">0</span>)
+                <i class="bi bi-trash3"></i> Delete
               </button>
             </div>
           </div>
