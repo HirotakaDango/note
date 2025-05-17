@@ -297,6 +297,13 @@
           </div>
         </ul>
         <!-- Selected notes actions -->
+        <div class="categories-sort-row">
+          <select id="categoryFilter" class="form-select"></select>
+          <select id="sortSelect" class="form-select sort-select" style="width: auto;">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+          </select>
+        </div>
         <div id="selectedNotesActions" class="my-4" style="display: none;">
           <div class="d-flex justify-content-between align-items-center">
             <div class="select-all-container align-items-center">
@@ -313,13 +320,6 @@
               </button>
             </div>
           </div>
-        </div>
-        <div class="categories-sort-row">
-          <select id="categoryFilter" class="form-select"></select>
-          <select id="sortSelect" class="form-select sort-select" style="width: auto;">
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-          </select>
         </div>
         <div id="noteList" class="list-group">
           <!-- Notes will be listed here -->
