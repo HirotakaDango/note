@@ -514,6 +514,7 @@
           notes[noteId].favorite = !notes[noteId].favorite;
           saveNotes();
           updateNoteList();
+          renderSingleNoteSidebarList(true); // <-- also update sidebar for favorite toggle
         }
       }
       function saveNote() {
@@ -526,6 +527,7 @@
           saveNotes();
           updateNoteList();
           updateTotalWordCounter();
+          renderSingleNoteSidebarList(true); // keep sidebar up-to-date
         }
       }
       function exportNotes() {
@@ -556,6 +558,20 @@
         };
         reader.readAsText(file);
       }
+
+      // --- Copied indicator ---
+      function showCopiedIndicator(cardEl) {
+        let ind = cardEl.querySelector('.copied-indicator');
+        if (!ind) {
+          ind = document.createElement('span');
+          ind.className = 'copied-indicator';
+          ind.textContent = 'Copied!';
+          cardEl.appendChild(ind);
+        }
+        ind.classList.add('show');
+        setTimeout(() => ind.classList.remove('show'), 1200);
+      }
+
       // --- UI: List and Sidebar Cards ---
       function renderNoteCard(note, noteId, {showCheckbox=false, selected=false, showCategory=true, showActions=true, active=false, limitChars=200}={}) {
         let card = document.createElement('div');
@@ -662,6 +678,13 @@
         if (showActions) {
           buttonsDiv.className = "single-note-card-actions";
           cardBody.classList.add("single-note-card-content");
+          // Copied indicator in the correct spot for sidebar/main
+          if (!card.querySelector('.copied-indicator')) {
+            let ind = document.createElement('span');
+            ind.className = 'copied-indicator';
+            ind.textContent = 'Copied!';
+            card.appendChild(ind);
+          }
         }
         return card;
       }
