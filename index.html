@@ -91,7 +91,6 @@
         overflow: hidden;
         position: relative;
       }
-
       #singleNoteMainNavbar {
         position: sticky;
         top: 0;
@@ -114,7 +113,6 @@
           min-width: 500px;
         }
       }
-
       #noteContent {
         width: 100%;
         border: none;
@@ -128,7 +126,6 @@
         min-height: 0;
         overflow-y: auto;
         box-sizing: border-box;
-        /* REAL MAGIC: fill the viewport below sticky header, no double scroll, bottom always visible */
         height: calc(100dvh - var(--header-height));
         max-height: calc(100dvh - var(--header-height));
       }
@@ -152,7 +149,9 @@
         user-select: none;
         pointer-events: none;
       }
-      .word-counter-container { display: none !important; }
+      .word-counter-container {
+        display: none !important;
+      }
       .single-note-card-actions {
         position: absolute;
         top: 1rem;
@@ -180,10 +179,20 @@
         align-items: center;
         margin-bottom: 1rem;
       }
-      .categories-sort-row .form-select { min-width: 180px; }
-      .categories-sort-row .form-control { min-width: 180px; }
-      .categories-sort-row .sort-select { margin-left: auto; min-width: 120px; }
-      .categories-sort-row .search-input { margin-left: 0; flex: 1 1 auto; }
+      .categories-sort-row .form-select {
+        min-width: 180px;
+      }
+      .categories-sort-row .form-control {
+        min-width: 180px;
+      }
+      .categories-sort-row .sort-select {
+        margin-left: auto;
+        min-width: 120px;
+      }
+      .categories-sort-row .search-input {
+        margin-left: 0;
+        flex: 1 1 auto;
+      }
       .copied-indicator {
         position: absolute;
         top: 0.5rem;
@@ -209,7 +218,6 @@
         z-index: 2000;
         display: none;
       }
-      /* Pagination controls */
       .pagination-container {
         display: flex;
         justify-content: center;
@@ -258,11 +266,11 @@
   </head>
   <body>
     <div class="w-100">
-      <!-- All Notes View -->
       <div class="container mb-5 mt-3" id="allNotesView">
         <ul class="nav nav-tabs border-0 my-2 bg-light-subtle p-3 rounded-4 align-items-center">
           <li class="nav-item">
-            <input id="searchInput" class="form-control search-sm rounded search-input w-100 border-0" style="padding-top: 0.48em; padding-bottom: 0.48em;" type="text" placeholder="🔍 Search..." />
+            <input id="searchInput" class="form-control search-sm rounded search-input w-100 border-0"
+              style="padding-top: 0.48em; padding-bottom: 0.48em;" type="text" placeholder="🔍 Search..." />
           </li>
           <li class="nav-item ms-auto">
             <a class="nav-link active border-0 rounded" href="#" id="allNotesTab"><i class="bi bi-card-text"></i></a>
@@ -301,7 +309,6 @@
             </ul>
           </div>
         </ul>
-        <!-- Selected notes actions -->
         <div class="categories-sort-row">
           <select id="categoryFilter" class="form-select"></select>
           <select id="sortSelect" class="form-select sort-select" style="width: auto;">
@@ -317,7 +324,8 @@
               (<label id="selectedCount">0</label> selected)
             </div>
             <div>
-              <button id="categorizeSelectedBtn" class="btn btn-secondary btn-sm ms-2 categorize-selected-btn" title="Set Category">
+              <button id="categorizeSelectedBtn" class="btn btn-secondary btn-sm ms-2 categorize-selected-btn"
+                title="Set Category">
                 <i class="bi bi-tags"></i> Categorize
               </button>
               <button id="deleteSelectedBtn" class="btn btn-danger btn-sm ms-2">
@@ -326,23 +334,21 @@
             </div>
           </div>
         </div>
-        <div id="noteList" class="list-group">
-          <!-- Notes will be listed here -->
-        </div>
+        <div id="noteList" class="list-group"></div>
         <div id="paginationContainer" class="pagination-container"></div>
       </div>
-      <!-- Single Note Dual Column View -->
       <div id="singleNoteView" style="display: none;">
         <div id="singleNoteDualCol" class="d-flex flex-row">
-          <!-- Sidebar: Note List (desktop only) -->
-          <div id="singleNoteSidebarColumn" class="d-flex flex-column vh-100 overflow-auto p-3 gap-1 bg-dark-subtle" style="display: flex;min-width:350px;max-width:420px;">
+          <div id="singleNoteSidebarColumn"
+            class="d-flex flex-column vh-100 overflow-auto p-3 gap-1 bg-dark-subtle"
+            style="display: flex;min-width:350px;max-width:420px;">
             <div class="fw-bold mb-2">All Notes</div>
             <div id="singleNoteSidebarList" class="flex-grow-1"></div>
             <button id="sidebarLoadMoreBtn" class="load-more-btn w-100" style="display:none;">Load More...</button>
           </div>
-          <!-- Main: Note Content -->
           <div id="singleNoteMainColumn" class="flex-grow-1 d-flex flex-column">
-            <div id="singleNoteMainNavbar" class="d-flex justify-content-between align-items-center bg-dark-subtle py-1 px-auto">
+            <div id="singleNoteMainNavbar"
+              class="d-flex justify-content-between align-items-center bg-dark-subtle py-1 px-auto">
               <div class="d-flex gap-3">
                 <button id="backBtn" class="btn border-0">
                   <i class="bi bi-chevron-left link-body-emphasis" style="-webkit-text-stroke: 2px;"></i>
@@ -365,7 +371,6 @@
                 </button>
               </div>
             </div>
-            <!-- The textarea now fills the rest, scrolls inside the column, navbar is sticky, dvh fix -->
             <textarea id="noteContent"
               class="form-control rounded-0 p-4 border-0 bg-dark-subtle focus-ring text-light focus-ring-dark flex-grow-1"></textarea>
           </div>
@@ -380,7 +385,6 @@
     </button>
 
     <script>
-      // --- Data & Storage ---
       let notes = {};
       let currentNote = null;
       let currentCategory = 'all';
@@ -390,14 +394,11 @@
       let redoStack = [];
       let lastRecordedContent = '';
       let autoSaveTimeout = null;
-      // Categories (dynamically managed)
       let categories = [];
-      // --- Pagination State ---
       const PAGE_SIZE = 25;
       let currentPage = 1;
       let sidebarPage = 1;
 
-      // --- DOM ---
       const allNotesView = document.getElementById('allNotesView');
       const singleNoteView = document.getElementById('singleNoteView');
       const noteList = document.getElementById('noteList');
@@ -429,7 +430,6 @@
       const paginationContainer = document.getElementById('paginationContainer');
       const sidebarLoadMoreBtn = document.getElementById('sidebarLoadMoreBtn');
 
-      // --- Category dropdowns ---
       function renderCategoryFilterDropdown() {
         categoryFilter.innerHTML = `<option value="all">All Categories</option>`;
         for (const cat of categories) {
@@ -437,6 +437,7 @@
         }
         categoryFilter.value = categoryFilter.value || "all";
       }
+
       function renderNoteCategoryDropdown(selectedCat) {
         noteCategorySelect.innerHTML = '';
         if (!categories.length) categories.push('all');
@@ -448,21 +449,24 @@
           noteCategorySelect.appendChild(opt);
         }
       }
-      // --- Note CRUD ---
+
       function loadNotes() {
         try {
           notes = JSON.parse(localStorage.getItem('notes')) || {};
-        } catch { notes = {}; }
-        // load categories from notes if any
+        } catch {
+          notes = {};
+        }
         categories = [];
         for (let n of Object.values(notes)) {
           if (n.category && !categories.includes(n.category)) categories.push(n.category);
         }
         if (!categories.length) categories.push('all');
       }
+
       function saveNotes() {
         localStorage.setItem('notes', JSON.stringify(notes));
       }
+
       function createNote() {
         if (!categories.length) categories.push("all");
         const noteId = Date.now().toString();
@@ -478,12 +482,12 @@
         showSingleNote();
         updateTotalWordCounter();
       }
+
       function deleteNote() {
         if (currentNote && notes[currentNote]) {
           if (confirm('Are you sure you want to delete this note?')) {
             delete notes[currentNote];
             saveNotes();
-            // Show the newest note after delete, or go back to main menu if none
             let noteArr = Object.entries(notes).sort((a, b) => new Date(b[1].date) - new Date(a[1].date));
             if (noteArr.length > 0) {
               currentNote = noteArr[0][0];
@@ -495,12 +499,14 @@
           }
         }
       }
+
       function deleteNoteFromList(noteId) {
         if (notes[noteId] && confirm('Are you sure you want to delete this note?')) {
           delete notes[noteId];
           selectedNotes.delete(noteId);
           saveNotes();
           updateNoteList();
+          renderSingleNoteSidebarList(true);
           updateSelectedNotesUI();
           if (noteId === currentNote) {
             let noteArr = Object.entries(notes).sort((a, b) => new Date(b[1].date) - new Date(a[1].date));
@@ -514,14 +520,16 @@
           }
         }
       }
+
       function toggleFavorite(noteId) {
         if (notes[noteId]) {
           notes[noteId].favorite = !notes[noteId].favorite;
           saveNotes();
           updateNoteList();
-          renderSingleNoteSidebarList(true); // <-- also update sidebar for favorite toggle
+          renderSingleNoteSidebarList(true);
         }
       }
+
       function saveNote() {
         if (currentNote && notes[currentNote]) {
           notes[currentNote].content = noteContent.value || '';
@@ -532,9 +540,10 @@
           saveNotes();
           updateNoteList();
           updateTotalWordCounter();
-          renderSingleNoteSidebarList(true); // keep sidebar up-to-date
+          renderSingleNoteSidebarList(true);
         }
       }
+
       function exportNotes() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notes));
         const a = document.createElement('a');
@@ -544,14 +553,15 @@
         a.click();
         a.remove();
       }
+
       function importNotes(e) {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function (evt) {
+        reader.onload = function(evt) {
           try {
             const imported = JSON.parse(evt.target.result);
-            notes = {...notes, ...imported};
+            notes = { ...notes, ...imported };
             saveNotes();
             loadNotes();
             renderCategoryFilterDropdown();
@@ -564,7 +574,6 @@
         reader.readAsText(file);
       }
 
-      // --- Copied indicator ---
       function showCopiedIndicator(cardEl) {
         let ind = cardEl.querySelector('.copied-indicator');
         if (!ind) {
@@ -577,39 +586,31 @@
         setTimeout(() => ind.classList.remove('show'), 1200);
       }
 
-      // --- UI: List and Sidebar Cards ---
-      function renderNoteCard(note, noteId, {showCheckbox=false, selected=false, showCategory=true, showActions=true, active=false, limitChars=200}={}) {
+      function renderNoteCard(note, noteId, { showCheckbox = false, selected = false, showCategory = true, showActions = true, active = false, limitChars = 200 } = {}) {
         let card = document.createElement('div');
-        let isSingleViewSidebar = !showCheckbox && showActions && limitChars===200 && !selected;
+        let isSingleViewSidebar = !showCheckbox && showActions && limitChars === 200 && !selected;
         card.className = 'card bg-body-tertiary mb-3 note-card border-0 rounded-3 position-relative' + (isSingleViewSidebar ? '' : ' ps-5');
         if (active) card.classList.add('active');
         card.style.cursor = 'pointer';
         card.style.position = 'relative';
-
         let cardBody = document.createElement('div');
         cardBody.className = "card-body";
-
-        // Header
         let noteHeader = document.createElement('div');
         noteHeader.className = "note-header";
-
-        // Date + Actions Row
         let leftHeader = document.createElement('span');
         let dateElem = document.createElement('small');
         dateElem.className = "fw-medium";
         dateElem.textContent = new Date(note.date).toLocaleDateString('en-US');
         leftHeader.appendChild(dateElem);
-
-        // Action Buttons
         let buttonsDiv = document.createElement('div');
         buttonsDiv.className = "";
-
         if (showActions) {
           let copyBtn = document.createElement('button');
           copyBtn.className = 'action-btn copy-btn';
           copyBtn.innerHTML = '<i class="bi bi-copy"></i>';
           copyBtn.onclick = e => {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
             navigator.clipboard.writeText(note.content || '').then(() => {
               showCopiedIndicator(card);
             });
@@ -620,18 +621,20 @@
           downloadBtn.onclick = e => {
             e.stopPropagation();
             const content = note.content || '';
-            let fn = (content.split('.')[0] || '').trim().split(/\s+/).slice(0,4).join(' ') || "Untitled";
+            let fn = (content.split('.')[0] || '').trim().split(/\s+/).slice(0, 4).join(' ') || "Untitled";
             let filename = prompt("Enter filename:", fn);
             if (filename === null) return;
             filename = filename.trim() === "" ? fn : filename.trim();
-            const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob); a.download = filename + ".txt"; a.click();
+            a.href = URL.createObjectURL(blob);
+            a.download = filename + ".txt";
+            a.click();
             URL.revokeObjectURL(a.href);
           };
           let favBtn = document.createElement('button');
           favBtn.className = 'action-btn favorite-btn';
-          favBtn.innerHTML = `<i class="bi ${note.favorite ? "bi-star-fill":"bi-star"}"></i>`;
+          favBtn.innerHTML = `<i class="bi ${note.favorite ? "bi-star-fill" : "bi-star"}"></i>`;
           favBtn.onclick = e => { e.stopPropagation(); toggleFavorite(noteId); };
           let delBtn = document.createElement('button');
           delBtn.className = 'action-btn delete-btn';
@@ -639,10 +642,7 @@
           delBtn.onclick = e => { e.stopPropagation(); deleteNoteFromList(noteId); };
           buttonsDiv.append(copyBtn, downloadBtn, favBtn, delBtn);
         }
-
         noteHeader.append(leftHeader, buttonsDiv);
-
-        // Category label (always below date + actions row)
         let categoryRow = document.createElement('div');
         categoryRow.className = "mt-1";
         if (showCategory) {
@@ -652,14 +652,10 @@
           categoryElem.textContent = note.category || "all";
           categoryRow.appendChild(categoryElem);
         }
-
-        // Content
         let contentDiv = document.createElement('div');
         contentDiv.className = 'mt-3';
-        let safeContent = (note.content||'').substring(0, limitChars)+(note.content.length>limitChars?"...":"");
+        let safeContent = (note.content || '').substring(0, limitChars) + (note.content.length > limitChars ? "..." : "");
         contentDiv.textContent = safeContent;
-
-        // Checkbox (if needed)
         if (showCheckbox) {
           const cbDiv = document.createElement('div');
           cbDiv.className = "position-absolute top-50 start-0 p-0 translate-middle-y ms-4";
@@ -676,14 +672,11 @@
           cbDiv.appendChild(cb);
           card.appendChild(cbDiv);
         }
-
         cardBody.append(noteHeader, categoryRow, contentDiv);
         card.append(cardBody);
-
         if (showActions) {
           buttonsDiv.className = "single-note-card-actions";
           cardBody.classList.add("single-note-card-content");
-          // Copied indicator in the correct spot for sidebar/main
           if (!card.querySelector('.copied-indicator')) {
             let ind = document.createElement('span');
             ind.className = 'copied-indicator';
@@ -694,81 +687,111 @@
         return card;
       }
 
-      // --- Pagination for allNotesView ---
       function getFilteredNotesArr() {
         let query = (searchInput.value || '').toLowerCase();
         let catFilter = categoryFilter.value;
-        let arr = Object.entries(notes).filter(([id,n]) =>
+        let arr = Object.entries(notes).filter(([id, n]) =>
           ((n.title && n.title.toLowerCase().includes(query)) ||
-          (n.content && n.content.toLowerCase().includes(query)))
-          && (currentCategory !== "favorites" || n.favorite)
-          && (catFilter==="all" || n.category===catFilter)
+            (n.content && n.content.toLowerCase().includes(query))) &&
+          (currentCategory !== "favorites" || n.favorite) &&
+          (catFilter === "all" || n.category === catFilter)
         );
         arr = arr.sort((a, b) => {
-          const da = new Date(a[1].date), db = new Date(b[1].date);
-          return sortSelect.value === 'newest' ? db-da : da-db;
+          const da = new Date(a[1].date),
+            db = new Date(b[1].date);
+          return sortSelect.value === 'newest' ? db - da : da - db;
         });
         return arr;
       }
+
       function updateNoteList() {
         if (!noteList) return;
         noteList.innerHTML = '';
         let notesArr = getFilteredNotesArr();
-        filteredNoteIds = notesArr.map(([id])=>id);
-        // Pagination logic
+        filteredNoteIds = notesArr.map(([id]) => id);
         let totalPages = Math.ceil(notesArr.length / PAGE_SIZE) || 1;
         if (currentPage > totalPages) currentPage = totalPages;
-        let pageNotes = notesArr.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+        let pageNotes = notesArr.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
         pageNotes.forEach(([noteId, note]) => {
           let card = renderNoteCard(note, noteId, {
-            showCheckbox:true, selected:selectedNotes.has(noteId), showCategory:true, showActions:true, limitChars:200
+            showCheckbox: true,
+            selected: selectedNotes.has(noteId),
+            showCategory: true,
+            showActions: true,
+            limitChars: 200
           });
-          card.onclick = e => { if (!e.target.closest('button') && !e.target.closest('input')) { currentNote = noteId; showSingleNote(); } };
+          card.onclick = e => {
+            if (!e.target.closest('button') && !e.target.closest('input')) {
+              currentNote = noteId;
+              showSingleNote();
+            }
+          };
           noteList.appendChild(card);
         });
         renderPagination(notesArr.length, totalPages);
-
         updateSelectedNotesUI();
       }
+
       function renderPagination(totalNotes, totalPages) {
         paginationContainer.innerHTML = '';
         if (totalPages <= 1) return;
-        // Prev Button
+
         let prevBtn = document.createElement('button');
         prevBtn.className = 'pagination-btn';
         prevBtn.innerHTML = '&lt; Prev';
         prevBtn.disabled = currentPage <= 1;
-        prevBtn.onclick = () => { currentPage = Math.max(1, currentPage-1); updateNoteList(); };
+        prevBtn.onclick = () => {
+          currentPage = Math.max(1, currentPage - 1);
+          updateNoteList();
+        };
         paginationContainer.appendChild(prevBtn);
-        // Page number
+
         let pageText = document.createElement('span');
         pageText.className = 'pagination-page';
         pageText.textContent = `Page ${currentPage} of ${totalPages}`;
+        pageText.title = 'Click to jump to a page';
+        pageText.style.cursor = 'pointer';
+        pageText.onclick = () => {
+          const newPage = prompt(`Enter page number (1-${totalPages}):`, currentPage);
+          if (newPage !== null) {
+            const pageNum = parseInt(newPage, 10);
+            if (!isNaN(pageNum) && pageNum > 0 && pageNum <= totalPages) {
+              currentPage = pageNum;
+              updateNoteList();
+            } else {
+              alert('Invalid page number.');
+            }
+          }
+        };
         paginationContainer.appendChild(pageText);
-        // Next Button
+
         let nextBtn = document.createElement('button');
         nextBtn.className = 'pagination-btn';
         nextBtn.innerHTML = 'Next &gt;';
         nextBtn.disabled = currentPage >= totalPages;
-        nextBtn.onclick = () => { currentPage = Math.min(totalPages, currentPage+1); updateNoteList(); };
+        nextBtn.onclick = () => {
+          currentPage = Math.min(totalPages, currentPage + 1);
+          updateNoteList();
+        };
         paginationContainer.appendChild(nextBtn);
       }
 
-      // --- Sidebar pagination for singleNoteView ---
       function getFilteredSidebarArr() {
-        let filter = (searchInput.value||'').toLowerCase();
+        let filter = (searchInput.value || '').toLowerCase();
         let catFilter = categoryFilter.value;
-        let arr = Object.entries(notes).filter(([id,n]) =>
+        let arr = Object.entries(notes).filter(([id, n]) =>
           ((n.title && n.title.toLowerCase().includes(filter)) ||
-          (n.content && n.content.toLowerCase().includes(filter)))
-          && (catFilter==="all" || n.category===catFilter)
+            (n.content && n.content.toLowerCase().includes(filter))) &&
+          (catFilter === "all" || n.category === catFilter)
         );
         arr = arr.sort((a, b) => {
-          const da = new Date(a[1].date), db = new Date(b[1].date);
-          return sortSelect.value === 'newest' ? db-da : da-db;
+          const da = new Date(a[1].date),
+            db = new Date(b[1].date);
+          return sortSelect.value === 'newest' ? db - da : da - db;
         });
         return arr;
       }
+
       function renderSingleNoteSidebarList(resetPage) {
         if (resetPage) sidebarPage = 1;
         singleNoteSidebarList.innerHTML = '';
@@ -776,12 +799,20 @@
         let shownArr = arr.slice(0, sidebarPage * PAGE_SIZE);
         shownArr.forEach(([noteId, note]) => {
           let card = renderNoteCard(note, noteId, {
-            showCheckbox:false, showCategory:true, showActions:true, active:noteId===currentNote, limitChars:200
+            showCheckbox: false,
+            showCategory: true,
+            showActions: true,
+            active: noteId === currentNote,
+            limitChars: 200
           });
-          card.onclick = e => { if (!e.target.closest('button') && !e.target.closest('input')) { currentNote = noteId; showSingleNote(); } };
+          card.onclick = e => {
+            if (!e.target.closest('button') && !e.target.closest('input')) {
+              currentNote = noteId;
+              showSingleNote();
+            }
+          };
           singleNoteSidebarList.appendChild(card);
         });
-        // Load more logic
         if (arr.length > shownArr.length) {
           sidebarLoadMoreBtn.style.display = '';
         } else {
@@ -789,7 +820,6 @@
         }
       }
 
-      // --- Multi-select UI ---
       function updateSelectedNotesUI() {
         if (!selectedNotesActions || !selectedCount) return;
         if (Object.keys(notes).length > 0) selectedNotesActions.style.display = 'block';
@@ -807,6 +837,7 @@
           }
         }
       }
+
       function deleteSelectedNotes() {
         if (selectedNotes.size === 0) return;
         if (confirm(`Are you sure you want to delete ${selectedNotes.size} note(s)?`)) {
@@ -817,7 +848,7 @@
           updateNoteList();
         }
       }
-      // --- Categorize Multiple Selected ---
+
       function categorizeSelectedNotes() {
         if (selectedNotes.size === 0) return;
         let cat = prompt('Enter category for selected notes (no commas):', "");
@@ -838,15 +869,15 @@
         updateNoteList();
         renderSingleNoteSidebarList(true);
       }
-      // --- Word Counter (total only) ---
+
       function updateTotalWordCounter() {
         if (!wordCounter || !noteContent) return;
         wordCounter.style.display = singleNoteView.style.display === 'block' ? 'block' : 'none';
         let text = noteContent.value || '';
-        let words = text.trim().split(/\s+/).filter(w => w.length>0);
+        let words = text.trim().split(/\s+/).filter(w => w.length > 0);
         wordCounter.textContent = 'Words: ' + words.length;
       }
-      // --- Navigation ---
+
       function showAllNotes() {
         allNotesView.style.display = 'block';
         singleNoteView.style.display = 'none';
@@ -854,6 +885,7 @@
         updateNoteList();
         wordCounter.style.display = 'none';
       }
+
       function showSingleNote() {
         allNotesView.style.display = 'none';
         singleNoteView.style.display = 'block';
@@ -874,7 +906,7 @@
           renderSingleNoteSidebarList(true);
         }
       }
-      // --- Category Management ---
+
       function addCategory() {
         let name = prompt("Enter new category name (no commas):", "");
         if (!name) return;
@@ -887,16 +919,16 @@
         renderCategoryFilterDropdown();
         renderNoteCategoryDropdown(noteCategorySelect.value);
       }
-      // --- Event Listeners ---
+
       function setupEventListeners() {
         categoryFilter.onchange = () => { currentPage = 1; updateNoteList(); };
-        allNotesTab.onclick = e => { e.preventDefault(); currentCategory='all'; allNotesTab.classList.add('active'); favoritesTab.classList.remove('active'); currentPage = 1; updateNoteList(); };
-        favoritesTab.onclick = e => { e.preventDefault(); currentCategory='favorites'; favoritesTab.classList.add('active'); allNotesTab.classList.remove('active'); currentPage = 1; updateNoteList(); };
+        allNotesTab.onclick = e => { e.preventDefault(); currentCategory = 'all'; allNotesTab.classList.add('active'); favoritesTab.classList.remove('active'); currentPage = 1; updateNoteList(); };
+        favoritesTab.onclick = e => { e.preventDefault(); currentCategory = 'favorites'; favoritesTab.classList.add('active'); allNotesTab.classList.remove('active'); currentPage = 1; updateNoteList(); };
         sortSelect.onchange = () => { currentPage = 1; updateNoteList(); };
         searchInput.oninput = () => { currentPage = 1; updateNoteList(); };
         newNoteBtn.onclick = createNote;
         exportBtn.onclick = exportNotes;
-        importBtn.onclick = ()=>importInput.click();
+        importBtn.onclick = () => importInput.click();
         importInput.onchange = importNotes;
         deleteSingleBtn.onclick = deleteNote;
         backBtn.onclick = showAllNotes;
@@ -948,7 +980,6 @@
         };
       }
 
-      // --- PWA Install Option (no manifest/sw.js needed) ---
       let deferredPrompt = null;
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -968,7 +999,6 @@
         deferredPrompt = null;
       });
 
-      // --- Service Worker/Offline Caching ---
       function registerServiceWorkerInline() {
         if ('serviceWorker' in navigator) {
           const swCode = `
@@ -991,14 +1021,13 @@
             });
           `;
           try {
-            const blob = new Blob([swCode], {type: 'application/javascript'});
+            const blob = new Blob([swCode], { type: 'application/javascript' });
             const swUrl = URL.createObjectURL(blob);
             navigator.serviceWorker.register(swUrl);
-          } catch {}
+          } catch { }
         }
       }
 
-      // --- INIT ---
       function init() {
         loadNotes();
         renderCategoryFilterDropdown();
@@ -1010,6 +1039,7 @@
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
       else init();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      crossorigin="anonymous"></script>
   </body>
 </html>
