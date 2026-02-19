@@ -1,3 +1,5 @@
+# WARNING: MAKE SURE BACKUP YOUR NOTES BEFORE UPDATE!
+
 # NoteTakeApp
 
 A simple, offline-capable note-taking web app built with HTML, JavaScript, and Bootstrap.  
