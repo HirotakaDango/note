@@ -261,7 +261,6 @@
         margin-left: 8px;
       }
 
-      /* --- COMPACT HEADER / CATEGORY ROW --- */
       .nav-tabs {
         flex-wrap: wrap;
         gap: 0.3rem;
@@ -300,7 +299,7 @@
       .categories-sort-row .sort-select {
         min-width: 120px;
         width: auto;
-        margin-left: 0; /* remove any auto margin */
+        margin-left: 0;
       }
 
       @media (max-width: 480px) {
@@ -423,7 +422,6 @@
         transform: translateY(-2px);
       }
 
-      /* ===== COMPACT FIND BAR ===== */
       #findBar {
         position: absolute;
         top: 60px;
@@ -506,7 +504,6 @@
         border-color: var(--accent-color);
       }
 
-      /* additional small‑screen tweaks */
       @media (max-width: 360px) {
         .container {
           padding-left: 10px;
@@ -692,7 +689,6 @@
         font-size: 1.2rem;
       }
 
-      /* reduce top container margin on mobile */
       .container.mt-4 {
         margin-top: 1rem !important;
       }
@@ -745,7 +741,6 @@
           </div>
         </ul>
 
-        <!-- category + sort row -->
         <div class="categories-sort-row">
           <select id="categoryFilter" class="form-select"></select>
           <select id="sortSelect" class="form-select sort-select" style="width: auto;">
@@ -754,7 +749,6 @@
           </select>
         </div>
 
-        <!-- bulk actions (hidden by default) -->
         <div id="selectedNotesActions" class="my-3" style="display: none;">
           <div class="d-flex justify-content-between align-items-center">
             <div class="select-all-container align-items-center">
@@ -772,7 +766,6 @@
           </div>
         </div>
 
-        <!-- note list -->
         <div id="noteList" class="list-group"></div>
         <div id="paginationContainer" class="pagination-container"></div>
       </div>
@@ -780,14 +773,12 @@
       <!-- SINGLE NOTE VIEW -->
       <div id="singleNoteView" style="display: none;">
         <div id="singleNoteDualCol" class="d-flex flex-row">
-          <!-- sidebar -->
           <div id="singleNoteSidebarColumn" class="d-flex flex-column vh-100 overflow-auto p-3 gap-1 bg-dark-subtle"
             style="min-width:350px;max-width:420px;">
             <div class="fw-bold mb-2">All Notes</div>
             <div id="singleNoteSidebarList" class="flex-grow-1 pb-4"></div>
             <button id="sidebarLoadMoreBtn" class="load-more-btn w-100" style="display:none;">Load More...</button>
           </div>
-          <!-- main editor -->
           <div id="singleNoteMainColumn" class="flex-grow-1 d-flex flex-column">
             <div id="singleNoteMainNavbar" class="d-flex justify-content-between align-items-center bg-dark-subtle py-1 px-3">
               <div class="d-flex gap-3">
@@ -853,7 +844,6 @@
     <button id="installButton" class="btn btn-primary-lg d-none"><i class="bi bi-download"></i> Install App</button>
 
     <script>
-      // (full script from previous version – unchanged)
       let notes = {};
       let currentNote = null;
       let currentCategory = 'all';
@@ -917,6 +907,44 @@
       const replaceAllBtn = document.getElementById('replaceAllBtn');
       const closeFindBar = document.getElementById('closeFindBar');
 
+      // Helper for avoiding HTML injections when directly setting content strings
+      function escapeHTML(str) {
+        return (str || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      // Safe, strict 1:1 plain text mapping. Resolves both doubling/reduction issues completely
+      function getEditorContent(el) {
+        let text = "";
+        const blockTags = new Set(["DIV", "P", "LI", "UL", "OL", "H1", "H2", "H3", "H4", "H5", "H6", "TR", "BLOCKQUOTE", "PRE", "SECTION"]);
+        
+        function traverse(node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            text += node.nodeValue;
+          } else if (node.nodeName === "BR") {
+            text += "\n";
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const isBlock = blockTags.has(node.nodeName);
+            // Blocks intrinsically represent a new line if we aren't already on one
+            if (isBlock && text.length > 0 && !text.endsWith('\n')) {
+              text += '\n';
+            }
+            for (let child of node.childNodes) traverse(child);
+          }
+        }
+        
+        for (let child of el.childNodes) traverse(child);
+        return text.replace(/\r\n/g, '\n');
+      }
+
+      function setEditorText(el, text) {
+        if (!text) {
+          el.innerHTML = '';
+          return;
+        }
+        // Force mapped content exactly using explicit linebreaks
+        el.innerHTML = escapeHTML(text).replace(/\r\n/g, '\n').replace(/\n/g, '<br>');
+      }
+
       async function initDB() {
         return new Promise((resolve, reject) => {
           const request = indexedDB.open('NoteTakeAppDB', 2);
@@ -966,14 +994,15 @@
 
       function renderCategoryFilterDropdown() {
         categoryFilter.innerHTML = `<option value="all">All Categories</option>`;
-        categories.forEach(cat => categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`);
+        categories.forEach(cat => categoryFilter.innerHTML += `<option value="${escapeHTML(cat)}">${escapeHTML(cat)}</option>`);
       }
 
       function renderNoteCategoryDropdown(selectedCat) {
         noteCategorySelect.innerHTML = '';
         categories.forEach(cat => {
           const opt = document.createElement('option');
-          opt.value = cat; opt.textContent = cat;
+          opt.value = cat; 
+          opt.innerHTML = escapeHTML(cat);
           if (cat === selectedCat) opt.selected = true;
           noteCategorySelect.appendChild(opt);
         });
@@ -1016,7 +1045,7 @@
       async function saveNote() {
         if (!currentNote || !notes[currentNote]) return;
         const note = notes[currentNote];
-        note.content = noteContent.innerText || '';
+        note.content = getEditorContent(noteContent);
         note.title = (note.content.split('\n')[0] || 'Untitled').trim();
         note.date = new Date().toISOString();
         note.category = noteCategorySelect.value || "all";
@@ -1058,7 +1087,12 @@
 
       function showCopiedIndicator(card) {
         let ind = card.querySelector('.copied-indicator');
-        if (!ind) { ind = document.createElement('span'); ind.className = 'copied-indicator'; ind.textContent = 'Copied!'; card.appendChild(ind); }
+        if (!ind) { 
+          ind = document.createElement('span'); 
+          ind.className = 'copied-indicator'; 
+          ind.innerHTML = 'Copied!'; 
+          card.appendChild(ind); 
+        }
         ind.classList.add('show');
         setTimeout(() => ind.classList.remove('show'), 1200);
       }
@@ -1073,7 +1107,7 @@
         const header = document.createElement('div'); header.className = "note-header";
         const left = document.createElement('span');
         const dateEl = document.createElement('small'); dateEl.className = "fw-medium";
-        dateEl.textContent = new Date(note.date).toLocaleDateString('en-US');
+        dateEl.innerHTML = escapeHTML(new Date(note.date).toLocaleDateString('en-US'));
         left.appendChild(dateEl);
 
         const btns = document.createElement('div');
@@ -1109,12 +1143,12 @@
         const catRow = document.createElement('div'); catRow.className = "mt-1";
         if (showCategory && note.category) {
           const cat = document.createElement('span'); cat.className = "category-badge bg-dark-subtle text-truncate";
-          cat.textContent = note.category; cat.title = note.category;
+          cat.innerHTML = escapeHTML(note.category); cat.title = note.category;
           catRow.appendChild(cat);
         }
 
         const contentDiv = document.createElement('div'); contentDiv.className = 'mt-3 text-light-emphasis';
-        contentDiv.textContent = (note.content || '').substring(0, limitChars) + ((note.content || '').length > limitChars ? '...' : '');
+        contentDiv.innerHTML = escapeHTML((note.content || '').substring(0, limitChars) + ((note.content || '').length > limitChars ? '...' : ''));
 
         if (showCheckbox) {
           const cbDiv = document.createElement('div'); cbDiv.className = "position-absolute top-50 start-0 translate-middle-y ms-4";
@@ -1131,7 +1165,7 @@
           btns.className = "single-note-card-actions";
           body.classList.add("single-note-card-content");
           if (!card.querySelector('.copied-indicator')) {
-            const ind = document.createElement('span'); ind.className = 'copied-indicator'; ind.textContent = 'Copied!';
+            const ind = document.createElement('span'); ind.className = 'copied-indicator'; ind.innerHTML = 'Copied!';
             card.appendChild(ind);
           }
         }
@@ -1173,7 +1207,8 @@
         p.onclick = () => { currentPage = Math.max(1, currentPage - 1); updateNoteList(); };
         paginationContainer.appendChild(p);
 
-        const txt = document.createElement('span'); txt.className = 'pagination-page'; txt.textContent = `${currentPage}/${pages}`;
+        const txt = document.createElement('span'); txt.className = 'pagination-page'; 
+        txt.innerHTML = `${currentPage}/${pages}`;
         txt.onclick = () => {
           const np = parseInt(prompt(`Page 1-${pages}`, currentPage), 10);
           if (np && np >= 1 && np <= pages) { currentPage = np; updateNoteList(); }
@@ -1213,7 +1248,7 @@
 
       function updateSelectedNotesUI() {
         selectedNotesActions.style.display = Object.keys(notes).length ? 'block' : 'none';
-        selectedCount.textContent = selectedNotes.size + ' selected';
+        selectedCount.innerHTML = selectedNotes.size + ' selected';
         if (selectAllCheckbox) {
           selectAllCheckbox.checked = filteredNoteIds.length && selectedNotes.size === filteredNoteIds.length;
           selectAllCheckbox.indeterminate = selectedNotes.size > 0 && selectedNotes.size < filteredNoteIds.length;
@@ -1244,8 +1279,8 @@
 
       function updateTotalWordCounter() {
         wordCounter.style.display = singleNoteView.style.display === 'block' ? 'block' : 'none';
-        const w = (noteContent.innerText || '').trim().split(/\s+/).filter(Boolean).length;
-        wordCounter.textContent = `Words: ${w}`;
+        const w = (getEditorContent(noteContent) || '').trim().split(/\s+/).filter(Boolean).length;
+        wordCounter.innerHTML = `Words: ${w}`;
       }
 
       function showAllNotes() {
@@ -1262,12 +1297,12 @@
         singleNoteView.style.display = 'block';
         if (!currentNote || !notes[currentNote]) return;
         const n = notes[currentNote];
-        noteDate.textContent = new Date(n.date).toLocaleDateString('en-US');
-        noteContent.innerText = n.content || '';
+        noteDate.innerHTML = escapeHTML(new Date(n.date).toLocaleDateString('en-US'));
+        setEditorText(noteContent, n.content || '');
         renderNoteCategoryDropdown(n.category);
         undoStack = [];
         redoStack = [];
-        lastRecordedContent = noteContent.innerText;
+        lastRecordedContent = getEditorContent(noteContent);
         updateTotalWordCounter();
         renderSingleNoteSidebarList(true);
         noteContent.focus();
@@ -1288,7 +1323,7 @@
 
       function recordUndoState() {
         if (ignoreInput) return;
-        const current = noteContent.innerText;
+        const current = getEditorContent(noteContent);
         if (current !== lastRecordedContent) {
           undoStack.push(lastRecordedContent);
           lastRecordedContent = current;
@@ -1299,9 +1334,9 @@
       function undo() {
         if (undoStack.length) {
           ignoreInput = true;
-          redoStack.push(noteContent.innerText);
-          noteContent.innerText = undoStack.pop();
-          lastRecordedContent = noteContent.innerText;
+          redoStack.push(getEditorContent(noteContent));
+          setEditorText(noteContent, undoStack.pop());
+          lastRecordedContent = getEditorContent(noteContent);
           saveNote();
           updateTotalWordCounter();
           if (findBar.style.display === 'block') highlightAllMatches();
@@ -1312,9 +1347,9 @@
       function redo() {
         if (redoStack.length) {
           ignoreInput = true;
-          undoStack.push(noteContent.innerText);
-          noteContent.innerText = redoStack.pop();
-          lastRecordedContent = noteContent.innerText;
+          undoStack.push(getEditorContent(noteContent));
+          setEditorText(noteContent, redoStack.pop());
+          lastRecordedContent = getEditorContent(noteContent);
           saveNote();
           updateTotalWordCounter();
           if (findBar.style.display === 'block') highlightAllMatches();
@@ -1322,7 +1357,7 @@
         }
       }
 
-      // Fix Enter key to insert <br> instead of new block
+      // Allow default browser logic to smoothly handle enter, utilizing exact plain text mapping instead to strictly prevent doubling or reduction
       noteContent.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 'z') {
           e.preventDefault();
@@ -1330,29 +1365,16 @@
         } else if (e.ctrlKey && e.key === 'y') {
           e.preventDefault();
           redo();
-        } else if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          e.stopPropagation();
+        }
+      });
 
-          const selection = window.getSelection();
-          const range = selection.getRangeAt(0);
-          const br = document.createElement('br');
-
-          range.deleteContents();
-          range.insertNode(br);
-
-          range.setStartAfter(br);
-          range.setEndAfter(br);
-          range.collapse(false);
-
-          selection.removeAllRanges();
-          selection.addRange(range);
-
-          recordUndoState();
-          clearTimeout(autoSaveTimeout);
-          autoSaveTimeout = setTimeout(saveNote, 280);
-          updateTotalWordCounter();
-          if (findBar.style.display === 'block') highlightAllMatches();
+      // Stops auto-formatting completely and strictly pastes exact plain text layout utilizing clean `<br>` format universally
+      noteContent.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+        if (text) {
+          const html = escapeHTML(text).replace(/\r\n/g, '\n').replace(/\n/g, '<br>');
+          document.execCommand('insertHTML', false, html);
         }
       });
 
@@ -1433,9 +1455,9 @@
         if (textNode && textNode.nodeType === Node.TEXT_NODE) {
           const regex = getFindRegex();
           if (!regex) return;
-          const before = textNode.textContent;
+          const before = textNode.nodeValue;
           const after = before.replace(regex, replaceText);
-          textNode.textContent = after;
+          textNode.nodeValue = after;
           current.parentNode.normalize();
           recordUndoState();
           saveNote();
@@ -1446,11 +1468,11 @@
       function doReplaceAll() {
         const regex = getFindRegex();
         if (!regex) return;
-        const content = noteContent.innerText;
+        const content = getEditorContent(noteContent);
         const newContent = content.replace(regex, replaceInput.value);
         if (newContent !== content) {
           ignoreInput = true;
-          noteContent.innerText = newContent;
+          setEditorText(noteContent, newContent);
           ignoreInput = false;
           recordUndoState();
           saveNote();
