@@ -8,9 +8,8 @@ All notes are stored locally in your browser. No account or server required.
 
 ## Screenshots
 
-![Screenshot](https://github.com/user-attachments/assets/61a43c9a-2328-4c95-9c77-4eb65c5b0bdf)
-![Screenshot](https://github.com/user-attachments/assets/90547e06-1a62-4625-bae6-d5d124ab4391)
-
+![Screenshot 1](https://github.com/user-attachments/assets/bbea9bc6-0a8c-415a-bb46-e2347165eb19)
+![Screenshot 2](https://github.com/user-attachments/assets/23ba622d-7a76-40ed-bbdd-48397ebead36)
 
 
 ## Features
