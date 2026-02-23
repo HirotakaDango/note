@@ -1,44 +1,55 @@
 # WARNING: MAKE SURE BACKUP YOUR NOTES BEFORE UPDATE!
 
+![Notebook Icon](https://www.svgrepo.com/show/192484/notepad-notebook.svg)
+
 # NoteTakeApp
 
 A simple, offline-capable note-taking web app built with HTML, JavaScript, and Bootstrap.  
 All notes are stored locally in your browser. No account or server required.
 
-
-## Screenshots
-
-![Screenshot 1](https://github.com/user-attachments/assets/bbea9bc6-0a8c-415a-bb46-e2347165eb19)
-![Screenshot 2](https://github.com/user-attachments/assets/23ba622d-7a76-40ed-bbdd-48397ebead36)
-
+---
 
 ## Features
 
 - **Create, Edit, and Delete Notes**  
-  Manage your notes easily with a user-friendly interface.
+  Effortlessly manage your notes with an intuitive interface.
 
 - **Categories & Favorites**  
-  Organize notes with custom categories and mark favorites for quick access.
+  Organize notes into custom categories and mark them as favorites for quick access.
 
-- **Search, Sort, and Pagination**  
-  Quickly find notes with instant search, sort by newest/oldest, and browse with pagination.
+- **Search With Highlighting**  
+  Perform instant searches with highlighting for easier note navigation.
 
 - **Multi-select & Bulk Actions**  
-  Select multiple notes to delete or categorize in bulk.
+  Select multiple notes to delete or categorize them all at once.
 
-- **Export/Import**  
-  Backup or transfer your notes as a JSON file.
+- **Word Counter**  
+  Displays word and character counts for your notes.
+
+- **Export/Import Notes As JSON**  
+  Backup your notes locally or transfer them between devices.
+
+- **Offline Support**  
+  Fully works without an internet connection and saves all data in the browser.
 
 - **Progressive Web App (PWA)**  
-  Installable as an app with offline support (works without an internet connection).
+  Installable as an app with offline capability.
 
-- **Responsive Design**  
-  Works great on both desktops and mobile devices.
+- **Customizable Design**  
+  Enjoy dark mode and a responsive layout for all screen sizes.
+
+- **Pinned Sidebar with Previews**  
+  Easily preview and switch between notes using a sidebar.
+
+- **Undo, Redo Capabilities**  
+  Make changes worry-free with built-in undo and redo functionalities.
+
+---
 
 ## Getting Started
 
-1. **Open [`index.html`](index.html) in your browser.**
-   - Or deploy to any static web host.
+1. **Open [`index.html`](index.html) in your browser.**  
+   - You can also host it on any static web host to make it available across devices.
 
-2. **[Optional] Install as an App**
-   - Look for the "Install App" button in the lower left, or use your browser's "Add to Home Screen" feature.
+2. **Install the App (Optional)**  
+   - Click on the “Install App” button or use your browser's “Add to Home Screen” feature.
