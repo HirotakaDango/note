@@ -48,6 +48,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script> <!-- JSZip for Bulk Download -->
+    
     <style>
       :root {
         --header-height: 44px;
@@ -112,7 +114,7 @@
         letter-spacing: 0.3px;
       }
 
-      .text-truncate {
+      .text-truncate-badge {
         max-width: 120px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -298,10 +300,6 @@
         display: flex;
         align-items: center;
         gap: 0.5em;
-      }
-
-      .categorize-selected-btn {
-        margin-left: 8px;
       }
 
       .nav-tabs {
@@ -631,7 +629,7 @@
 
       #selectedNotesActions {
         background: var(--bg-card);
-        padding: 0.5rem 0.5rem;
+        padding: 0.75rem 1rem;
         border-radius: 16px;
         margin-bottom: 1.5rem;
       }
@@ -664,10 +662,26 @@
         max-width: 900px;
       }
 
+      /* Note Grid System Updates */
       #noteList {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      @media (min-width: 768px) {
+        #noteList {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (min-width: 992px) {
+        #noteList {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .container {
+          max-width: 1100px; /* Slightly wider for 3 columns visually */
+        }
       }
 
       .card-body {
@@ -754,12 +768,12 @@
               </div>
               <li>
                 <button id="exportBtn" class="dropdown-item">
-                  <i class="bi bi-download"></i> Export
+                  <i class="bi bi-download"></i> Export JSON
                 </button>
               </li>
               <li>
                 <button id="importBtn" class="dropdown-item">
-                  <i class="bi bi-upload"></i> Import
+                  <i class="bi bi-upload"></i> Import JSON
                 </button>
               </li>
               <div class="px-3">
@@ -788,23 +802,25 @@
         </div>
 
         <div id="selectedNotesActions" class="my-3" style="display: none;">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="select-all-container align-items-center">
-              <input type="checkbox" id="selectAllCheckbox" class="form-check-input my-auto">
-              <label for="selectAllCheckbox" id="selectedCount" style="cursor: pointer;">0 selected</label>
-            </div>
-            <div>
-              <button id="categorizeSelectedBtn" class="btn btn-outline-primary border-0 rounded-3 fw-medium btn-sm ms-2 categorize-selected-btn" title="Set Category">
-                Categorize
-              </button>
-              <button id="deleteSelectedBtn" class="btn btn-outline-danger border-0 rounded-3 fw-medium btn-sm">
-                Delete
-              </button>
-            </div>
+          <div class="d-flex gap-2 justify-content-between align-items-center">
+            <button id="downloadSelectedBtn" class="btn btn-outline-success border-0 rounded-3 fw-bold btn-sm" title="Download as ZIP">
+              Download
+            </button>
+            <button id="categorizeSelectedBtn" class="btn btn-outline-primary border-0 rounded-3 fw-bold btn-sm" title="Set Category">
+              Categorize
+            </button>
+            <button id="deleteSelectedBtn" class="btn btn-outline-danger border-0 rounded-3 fw-bold btn-sm">
+              Delete
+            </button>
+          </div>
+          <div class="select-all-container align-items-center m-2 mt-4">
+            <input type="checkbox" id="selectAllCheckbox" class="form-check-input my-auto">
+            <label for="selectAllCheckbox" id="selectedCount" style="cursor: pointer;">0 selected</label>
           </div>
         </div>
 
-        <div id="noteList" class="list-group"></div>
+        <!-- Note List changes to handle Standard Card Layouts in Grid -->
+        <div id="noteList"></div>
         <div id="paginationContainer" class="pagination-container"></div>
         
         <div class="text-center mt-5 mb-3 user-select-none">
@@ -854,8 +870,8 @@
               <div class="mb-2">
                 <input type="text" id="findInput" class="form-control form-control-sm bg-dark text-light border-0" placeholder="Find..." autocomplete="off">
               </div>
-              <!-- Counter Label -->
-              <div id="findCounter" class="mb-3 text-warning fw-medium text-truncate" style="font-size: 0.85rem; display: none;"></div>
+              <!-- Counter Label changed to fully wrap text -->
+              <div id="findCounter" class="mb-3 text-warning fw-medium text-wrap text-break" style="font-size: 0.85rem; display: none;"></div>
               
               <div class="mb-3">
                 <input type="text" id="replaceInput" class="form-control form-control-sm bg-dark text-light border-0" placeholder="Replace with..." autocomplete="off">
@@ -930,13 +946,14 @@
       const wordCounter = document.getElementById('wordCounter');
       const selectedNotesActions = document.getElementById('selectedNotesActions');
       const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+      const categorizeSelectedBtn = document.getElementById('categorizeSelectedBtn');
+      const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
       const selectAllCheckbox = document.getElementById('selectAllCheckbox');
       const selectedCount = document.getElementById('selectedCount');
       const categoryFilter = document.getElementById('categoryFilter');
       const singleNoteSidebarList = document.getElementById('singleNoteSidebarList');
       const addCategoryBtn = document.getElementById('addCategoryBtn');
       const noteCategorySelect = document.getElementById('noteCategorySelect');
-      const categorizeSelectedBtn = document.getElementById('categorizeSelectedBtn');
       const installButton = document.getElementById('installButton');
       const paginationContainer = document.getElementById('paginationContainer');
       const sidebarLoadMoreBtn = document.getElementById('sidebarLoadMoreBtn');
@@ -1142,7 +1159,8 @@
       function renderNoteCard(note, noteId, opts = {}) {
         const { showCheckbox = false, selected = false, showCategory = true, showActions = true, active = false, limitChars = 200 } = opts;
         const card = document.createElement('div');
-        card.className = `card bg-dark note-card border-0 rounded-4 position-relative ${!showCheckbox && showActions ? '' : 'ps-5'}`;
+        // Added h-100 to ensure grid cards have equal heights across columns
+        card.className = `card h-100 bg-dark note-card border-0 rounded-4 position-relative ${!showCheckbox && showActions ? '' : 'ps-5'}`;
         if (active) card.classList.add('active');
 
         const body = document.createElement('div'); body.className = "card-body";
@@ -1184,7 +1202,7 @@
 
         const catRow = document.createElement('div'); catRow.className = "mt-1";
         if (showCategory && note.category) {
-          const cat = document.createElement('span'); cat.className = "category-badge bg-dark-subtle text-truncate";
+          const cat = document.createElement('span'); cat.className = "category-badge bg-dark-subtle text-truncate-badge";
           cat.innerHTML = escapeHTML(note.category); cat.title = note.category;
           catRow.appendChild(cat);
         }
@@ -1318,6 +1336,40 @@
         Object.values(notes).forEach(n => saveNoteToDB(n));
         updateNoteList();
         renderSingleNoteSidebarList(true);
+      }
+
+      async function downloadSelectedNotesZip() {
+        if (!selectedNotes.size) return;
+        if (typeof JSZip === 'undefined') {
+          alert('JSZip library is not loaded. Please ensure you have internet connection.');
+          return;
+        }
+
+        const zip = new JSZip();
+        const folder = zip.folder("notes_export");
+        
+        selectedNotes.forEach(id => {
+          const n = notes[id];
+          if (n) {
+            let safeTitle = (n.title || 'Untitled').trim().replace(/[\\/:*?"<>|]/g, '_').substring(0, 50);
+            if (!safeTitle) safeTitle = 'Untitled';
+            const shortId = id.substring(id.length - 4);
+            const content = n.content || '';
+            folder.file(`${safeTitle}_${shortId}.txt`, content);
+          }
+        });
+
+        try {
+          const content = await zip.generateAsync({ type: "blob" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(content);
+          a.download = `notes_export_${new Date().getTime()}.zip`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        } catch (e) {
+          console.error("ZIP Generation failed:", e);
+          alert("Failed to generate ZIP file.");
+        }
       }
 
       function updateTotalWordCounter() {
@@ -1578,6 +1630,7 @@
           updateNoteList();
           updateSelectedNotesUI();
         };
+        downloadSelectedBtn.onclick = downloadSelectedNotesZip;
         deleteSelectedBtn.onclick = deleteSelectedNotes;
         categorizeSelectedBtn.onclick = categorizeSelectedNotes;
 
@@ -1651,6 +1704,7 @@
           'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
           'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
           'https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
           'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
           'https://www.svgrepo.com/show/192484/notepad-notebook.svg'
         ];
@@ -1669,6 +1723,7 @@
               'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
               'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
               'https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js',
+              'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
               'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
               'https://www.svgrepo.com/show/192484/notepad-notebook.svg'
             ];
