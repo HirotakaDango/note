@@ -12,14 +12,14 @@
     <meta name="apple-mobile-web-app-title" content="NoteTakeApp" />
     <link rel="apple-touch-icon" href="https://www.svgrepo.com/show/192484/notepad-notebook.svg" />
 
-    <!-- Facebook Meta Tags (updated for NoteTakeApp) -->
+    <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://hirotakadango.github.io/note/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="NoteTakeApp">
     <meta property="og:description" content="A simple note-taking app.">
     <meta property="og:image" content="https://www.svgrepo.com/show/192484/notepad-notebook.svg">
 
-    <!-- Twitter Meta Tags (updated for NoteTakeApp) -->
+    <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="hirotakadango.github.io">
     <meta property="twitter:url" content="https://hirotakadango.github.io/note/">
@@ -30,19 +30,15 @@
     <!-- Auto‑detect current site URL and update meta tags (no Firebase) -->
     <script>
       (function() {
-        // Get the current page URL
         var currentUrl = window.location.href;
         var currentDomain = window.location.hostname;
 
-        // Update Facebook Open Graph url
         var ogUrlMeta = document.querySelector('meta[property="og:url"]');
         if (ogUrlMeta) ogUrlMeta.setAttribute('content', currentUrl);
 
-        // Update Twitter url
         var twitterUrlMeta = document.querySelector('meta[property="twitter:url"]');
         if (twitterUrlMeta) twitterUrlMeta.setAttribute('content', currentUrl);
 
-        // Optionally update twitter:domain to match current domain
         var twitterDomainMeta = document.querySelector('meta[property="twitter:domain"]');
         if (twitterDomainMeta) twitterDomainMeta.setAttribute('content', currentDomain);
       })();
@@ -235,18 +231,21 @@
         background: var(--bg-dark);
       }
 
+      /* Highlight Search Styling */
       mark {
-        background: #ffee58 !important;
-        color: #212529 !important;
+        background: transparent !important;
+        color: inherit !important;
+        padding: 0;
+        border-radius: 0;
+      }
+
+      mark.current-match {
+        background: #ff9800 !important;
+        color: #fff !important;
         padding: 2px 4px;
         border-radius: 4px;
         font-weight: 600;
-      }
-
-      .current-match mark {
-        background: #ffb74d !important;
-        border: 2px solid #ff9800;
-        box-shadow: 0 0 8px rgba(255, 152, 0, 0.4);
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
       }
 
       #singleNoteSidebarColumn::-webkit-scrollbar {
@@ -852,9 +851,12 @@
             <div id="noteContent" class="form-control rounded-0 p-4 border-0 bg-dark-subtle text-light" contenteditable="true"></div>
             <!-- compact find bar -->
             <div id="findBar">
-              <div class="mb-3">
+              <div class="mb-2">
                 <input type="text" id="findInput" class="form-control form-control-sm bg-dark text-light border-0" placeholder="Find..." autocomplete="off">
               </div>
+              <!-- Counter Label -->
+              <div id="findCounter" class="mb-3 text-warning fw-medium text-truncate" style="font-size: 0.85rem; display: none;"></div>
+              
               <div class="mb-3">
                 <input type="text" id="replaceInput" class="form-control form-control-sm bg-dark text-light border-0" placeholder="Replace with..." autocomplete="off">
               </div>
@@ -951,12 +953,10 @@
       const replaceAllBtn = document.getElementById('replaceAllBtn');
       const closeFindBar = document.getElementById('closeFindBar');
 
-      // Helper for avoiding HTML injections when directly setting content strings
       function escapeHTML(str) {
         return (str || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
 
-      // Safe, strict 1:1 plain text mapping. Resolves both doubling/reduction issues completely
       function getEditorContent(el) {
         let text = "";
         const blockTags = new Set(["DIV", "P", "LI", "UL", "OL", "H1", "H2", "H3", "H4", "H5", "H6", "TR", "BLOCKQUOTE", "PRE", "SECTION"]);
@@ -968,7 +968,6 @@
             text += "\n";
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             const isBlock = blockTags.has(node.nodeName);
-            // Blocks intrinsically represent a new line if we aren't already on one
             if (isBlock && text.length > 0 && !text.endsWith('\n')) {
               text += '\n';
             }
@@ -985,7 +984,6 @@
           el.innerHTML = '';
           return;
         }
-        // Force mapped content exactly using explicit linebreaks
         el.innerHTML = escapeHTML(text).replace(/\r\n/g, '\n').replace(/\n/g, '<br>');
       }
 
@@ -1442,14 +1440,29 @@
         }
       }
 
+      function updateFindCounter() {
+        const findCounter = document.getElementById('findCounter');
+        const term = findInput.value;
+        if (!term) {
+          findCounter.style.display = 'none';
+          findCounter.innerText = '';
+        } else {
+          findCounter.style.display = 'block';
+          let current = matches.length > 0 ? currentMatchIndex + 1 : 0;
+          findCounter.innerText = `${term} (${current}/${matches.length})`;
+        }
+      }
+
       function highlightAllMatches() {
         if (!marker) return;
         marker.unmark();
+        matches = [];
+        currentMatchIndex = 0;
+        updateFindCounter();
+
         const regex = getFindRegex();
-        if (!regex) {
-          matches = [];
-          return;
-        }
+        if (!regex) return;
+
         marker.markRegExp(regex, {
           element: 'mark',
           className: '',
@@ -1463,12 +1476,13 @@
       }
 
       function highlightCurrentMatch() {
-        document.querySelectorAll('.current-match').forEach(el => el.classList.remove('current-match'));
-        if (matches.length && currentMatchIndex >= 0 && currentMatchIndex < matches.length) {
+        document.querySelectorAll('mark.current-match').forEach(el => el.classList.remove('current-match'));
+        if (matches.length > 0 && currentMatchIndex >= 0 && currentMatchIndex < matches.length) {
           const current = matches[currentMatchIndex];
           current.classList.add('current-match');
-          current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          current.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
+        updateFindCounter();
       }
 
       function findNext() {
@@ -1586,6 +1600,15 @@
         closeFindBar.onclick = toggleFindBar;
 
         findInput.addEventListener('input', highlightAllMatches);
+        
+        // Allows jump to next when hitting Enter in Find box
+        findInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            findNext();
+          }
+        });
+
         caseSensitive.addEventListener('change', highlightAllMatches);
         wholeWord.addEventListener('change', highlightAllMatches);
 
@@ -1599,23 +1622,18 @@
       let deferredPrompt = null;
 
       window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent default mini-infobar on mobile and stash event
         e.preventDefault();
         deferredPrompt = e;
-        // Make install button visible via standard bootstrap classes
         installButton.classList.remove('d-none');
       });
 
       installButton.addEventListener('click', async () => {
         if (!deferredPrompt) return;
-        // Show native install prompt
         deferredPrompt.prompt();
-        // Wait for user resolution
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
           console.log('User accepted the install prompt');
         }
-        // Cleanup install process
         deferredPrompt = null;
         installButton.classList.add('d-none');
       });
@@ -1637,14 +1655,12 @@
           'https://www.svgrepo.com/show/192484/notepad-notebook.svg'
         ];
 
-        // 1. Install fallback/manual cache layer right from main thread 
         if ('caches' in window) {
           caches.open('notetake-app-v1').then(cache => {
             cache.addAll(cacheAssets).catch(() => {});
           });
         }
 
-        // 2. Setup dynamically generated Service Worker using a Blob URL for single file portability
         if ('serviceWorker' in navigator) {
           const swCode = `
             const CACHE_NAME = 'notetake-app-v1';
@@ -1689,7 +1705,6 @@
                       return fetchRes;
                     });
                   }).catch(() => {
-                    // Provide fallback loading mechanism for full offline start
                     if (event.request.mode === 'navigate') {
                       return caches.match('${baseURL}');
                     }
@@ -1705,7 +1720,6 @@
           navigator.serviceWorker.register(blobUrl).then(reg => {
             console.log('Dynamic single-file ServiceWorker registered successfully for offline capabilities.');
           }).catch(err => {
-            // Blob blocked due to specific browser security? Fallback silently to normal sw file registration
             navigator.serviceWorker.register('./sw.js').catch(() => console.log('Offline SW caching active via main thread.'));
           });
         }
@@ -1735,7 +1749,6 @@
           ]
         };
         
-        // Dynamically inject the JSON manifest via Blob URL
         const stringManifest = JSON.stringify(manifest);
         const blob = new Blob([stringManifest], { type: 'application/manifest+json' });
         const manifestURL = URL.createObjectURL(blob);
