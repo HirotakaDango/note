@@ -13,7 +13,7 @@
     <link rel="apple-touch-icon" href="https://www.svgrepo.com/show/192484/notepad-notebook.svg" />
 
     <!-- Facebook Meta Tags (updated for NoteTakeApp) -->
-    <meta property="og:url" content="">
+    <meta property="og:url" content="https://hirotakadango.github.io/note/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="NoteTakeApp">
     <meta property="og:description" content="A simple note-taking app.">
@@ -21,8 +21,8 @@
 
     <!-- Twitter Meta Tags (updated for NoteTakeApp) -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="">
-    <meta property="twitter:url" content="">
+    <meta property="twitter:domain" content="hirotakadango.github.io">
+    <meta property="twitter:url" content="https://hirotakadango.github.io/note/">
     <meta name="twitter:title" content="NoteTakeApp">
     <meta name="twitter:description" content="A simple note-taking app.">
     <meta name="twitter:image" content="https://www.svgrepo.com/show/192484/notepad-notebook.svg">
@@ -771,6 +771,11 @@
                   <i class="bi bi-download me-1"></i> Install App
                 </button>
               </li>
+              <li>
+                <a class="dropdown-item" href="https://github.com/HirotakaDango/note" target="_blank" rel="noopener noreferrer">
+                  <i class="bi bi-github"></i> GitHub Repo
+                </a>
+              </li>
             </ul>
           </div>
         </ul>
@@ -802,6 +807,12 @@
 
         <div id="noteList" class="list-group"></div>
         <div id="paginationContainer" class="pagination-container"></div>
+        
+        <div class="text-center mt-5 mb-3 user-select-none">
+          <small class="text-muted fw-medium">
+            Made by <a href="https://github.com/HirotakaDango" target="_blank" class="text-decoration-none" style="color: var(--accent-color);">HirotakaDango</a>
+          </small>
+        </div>
       </div>
 
       <!-- SINGLE NOTE VIEW -->
@@ -874,7 +885,7 @@
 
     <!-- hidden import input, word counter -->
     <input type="file" id="importInput" style="display: none;" accept=".json" />
-    <div id="wordCounter" class="bg-light text-dark bg-opacity-50" style="display: none;">Words: 0</div>
+    <div id="wordCounter" class="bg-light text-dark bg-opacity-50" style="display: none;">Words: 0 | Chars: 0</div>
 
     <script>
       let notes = {};
@@ -1301,7 +1312,8 @@
       function categorizeSelectedNotes() {
         if (!selectedNotes.size) return;
         let cat = prompt('Category for selected notes:', '');
-        cat = (cat || '').trim();
+        if (cat === null) return;
+        cat = cat.trim();
         if (!cat) return;
         if (!categories.includes(cat)) { categories.push(cat); renderCategoryFilterDropdown(); }
         selectedNotes.forEach(id => { if (notes[id]) notes[id].category = cat; });
@@ -1312,8 +1324,10 @@
 
       function updateTotalWordCounter() {
         wordCounter.style.display = singleNoteView.style.display === 'block' ? 'block' : 'none';
-        const w = (getEditorContent(noteContent) || '').trim().split(/\s+/).filter(Boolean).length;
-        wordCounter.innerHTML = `Words: ${w}`;
+        const content = getEditorContent(noteContent) || '';
+        const w = content.trim().split(/\s+/).filter(Boolean).length;
+        const c = content.length;
+        wordCounter.innerHTML = `Words: ${w} | Chars: ${c}`;
       }
 
       function showAllNotes() {
@@ -1347,7 +1361,8 @@
 
       function addCategory() {
         let name = prompt("New category:", "");
-        name = (name || '').trim();
+        if (name === null) return;
+        name = name.trim();
         if (!name || categories.includes(name)) return alert("Invalid or duplicate");
         categories.push(name);
         renderCategoryFilterDropdown();
