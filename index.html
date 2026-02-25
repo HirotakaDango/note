@@ -880,11 +880,11 @@
                 <div class="d-flex gap-3 pt-1 align-items-center">
                   <div class="form-check form-check-sm my-auto">
                     <input class="form-check-input bol" type="checkbox" id="caseSensitive">
-                    <label class="form-check-label" for="caseSensitive">Match case</label>
+                    <label class="form-check-label text-nowrap" for="caseSensitive">Match Case</label>
                   </div>
                   <div class="form-check form-check-sm my-auto">
                     <input class="form-check-input bol" type="checkbox" id="wholeWord">
-                    <label class="form-check-label" for="wholeWord">Whole word</label>
+                    <label class="form-check-label text-nowrap" for="wholeWord">Whole Word</label>
                   </div>
                 </div>
                 <button id="closeFindBar" class="ms-3 btn btn-secondary btn-sm border-0 my-auto">Close</button>
@@ -1160,7 +1160,7 @@
         const { showCheckbox = false, selected = false, showCategory = true, showActions = true, active = false, limitChars = 200 } = opts;
         const card = document.createElement('div');
         // Added h-100 to ensure grid cards have equal heights across columns
-        card.className = `card h-100 bg-dark note-card border-0 rounded-4 position-relative ${!showCheckbox && showActions ? '' : 'ps-5'}`;
+        card.className = `card bg-dark note-card border-0 rounded-4 position-relative max-h-note ${!showCheckbox && showActions ? '' : 'ps-5'}`;
         if (active) card.classList.add('active');
 
         const body = document.createElement('div'); body.className = "card-body";
