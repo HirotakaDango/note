@@ -124,12 +124,9 @@
         border-right: 1px solid var(--border-color);
         min-width: 350px;
         max-width: 400px;
-        background: var(--bg-sidebar);
         height: 100dvh;
-        overflow-y: auto;
         display: flex;
         flex-direction: column;
-        padding: 1.5rem;
       }
       #singleNoteSidebarColumn .note-card {
         margin-bottom: 0.75rem;
@@ -213,17 +210,21 @@
         font-weight: 600;
         box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
       }
-      #singleNoteSidebarColumn::-webkit-scrollbar {
+      #singleNoteSidebarColumn::-webkit-scrollbar,
+      #sidebarContentWrapper::-webkit-scrollbar {
         width: 6px;
       }
-      #singleNoteSidebarColumn::-webkit-scrollbar-track {
+      #singleNoteSidebarColumn::-webkit-scrollbar-track,
+      #sidebarContentWrapper::-webkit-scrollbar-track {
         background: transparent;
       }
-      #singleNoteSidebarColumn::-webkit-scrollbar-thumb {
+      #singleNoteSidebarColumn::-webkit-scrollbar-thumb,
+      #sidebarContentWrapper::-webkit-scrollbar-thumb {
         background: var(--border-color);
         border-radius: 3px;
       }
-      #singleNoteSidebarColumn::-webkit-scrollbar-thumb:hover {
+      #singleNoteSidebarColumn::-webkit-scrollbar-thumb:hover,
+      #sidebarContentWrapper::-webkit-scrollbar-thumb:hover {
         background: #495057;
       }
       #wordCounter {
@@ -641,10 +642,15 @@
           </li>
           <div class="dropdown">
             <button class="btn border-0 rounded nav-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">&#9776;</button>
-            <ul class="dropdown-menu rounded-4">
+            <ul class="dropdown-menu rounded-4 shadow">
               <li>
                 <button id="newNoteBtn" class="dropdown-item">
                   <i class="bi bi-plus-circle"></i> New Note
+                </button>
+              </li>
+              <li>
+                <button id="importTxtBtn" class="dropdown-item">
+                  <i class="bi bi-file-earmark-text"></i> Upload TXT
                 </button>
               </li>
               <li>
@@ -715,10 +721,15 @@
       </div>
       <div id="singleNoteView" style="display: none;">
         <div id="singleNoteDualCol" class="d-flex flex-row">
-          <div id="singleNoteSidebarColumn" class="d-flex flex-column vh-100 overflow-auto p-3 gap-1 bg-dark-subtle" style="min-width:350px;max-width:420px;">
-            <div class="fw-bold mb-2">All Notes</div>
-            <div id="singleNoteSidebarList" class="flex-grow-1 pb-5"></div>
-            <button id="sidebarLoadMoreBtn" class="load-more-btn w-100" style="display:none;">Load More...</button>
+          <div id="singleNoteSidebarColumn">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color: var(--border-color) !important;">
+              <div class="fw-bold fs-5 text-light">All Notes</div>
+              <button id="sidebarNewNoteBtn" class="btn btn-primary btn-sm rounded-3 fw-bold px-3"><i class="bi bi-plus-lg me-1"></i> New</button>
+            </div>
+            <div class="flex-grow-1 overflow-auto p-3 d-flex flex-column gap-1" id="sidebarContentWrapper">
+              <div id="singleNoteSidebarList" class="flex-grow-1 pb-2"></div>
+              <button id="sidebarLoadMoreBtn" class="load-more-btn w-100" style="display:none;">Load More...</button>
+            </div>
           </div>
           <div id="singleNoteMainColumn" class="flex-grow-1 d-flex flex-column">
             <div id="singleNoteMainNavbar" class="d-flex justify-content-between align-items-center bg-dark-subtle py-1 px-3">
@@ -778,6 +789,7 @@
       </div>
     </div>
     <input type="file" id="importInput" style="display: none;" accept=".json" />
+    <input type="file" id="importTxtInput" style="display: none;" accept=".txt, text/plain" multiple />
     <div id="wordCounter" class="bg-light text-dark bg-opacity-50" style="display: none;">Words: 0 | Chars: 0</div>
     <script>
       let notes = {};
@@ -785,7 +797,7 @@
       let currentCategory = 'all';
       let selectedNotes = new Set();
       let filteredNoteIds = [];
-      let undoStack =[];
+      let undoStack = [];
       let redoStack =[];
       let lastRecordedContent = '';
       let autoSaveTimeout = null;
@@ -842,6 +854,9 @@
       const replaceBtn = document.getElementById('replaceBtn');
       const replaceAllBtn = document.getElementById('replaceAllBtn');
       const closeFindBar = document.getElementById('closeFindBar');
+      const sidebarNewNoteBtn = document.getElementById('sidebarNewNoteBtn');
+      const importTxtBtn = document.getElementById('importTxtBtn');
+      const importTxtInput = document.getElementById('importTxtInput');
 
       function escapeHTML(str) {
         return (str || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1206,7 +1221,8 @@
       }
 
       function renderSingleNoteSidebarList(reset = false) {
-        if (reset) { sidebarPage = 1; sidebarScrollPos = singleNoteSidebarList.scrollTop || 0; }
+        const wrapper = document.getElementById('sidebarContentWrapper');
+        if (reset) { sidebarPage = 1; sidebarScrollPos = wrapper ? wrapper.scrollTop : 0; }
         singleNoteSidebarList.innerHTML = '';
         const frag = document.createDocumentFragment();
         const arr = getFilteredSidebarArr();
@@ -1217,7 +1233,7 @@
         });
         singleNoteSidebarList.appendChild(frag);
         sidebarLoadMoreBtn.style.display = arr.length > sidebarPage * PAGE_SIZE ? '' : 'none';
-        singleNoteSidebarList.scrollTop = sidebarScrollPos;
+        if (wrapper) wrapper.scrollTop = sidebarScrollPos;
       }
 
       function updateSelectedNotesUI() {
@@ -1347,7 +1363,7 @@
           lastRecordedContent = getEditorContent(noteContent);
           saveNote();
           updateTotalWordCounter();
-          if (findBar.style.display === 'block') highlightAllMatches();
+          if (findBar.style.display === 'block') highlightAllMatches(false);
           ignoreInput = false;
         }
       }
@@ -1360,7 +1376,7 @@
           lastRecordedContent = getEditorContent(noteContent);
           saveNote();
           updateTotalWordCounter();
-          if (findBar.style.display === 'block') highlightAllMatches();
+          if (findBar.style.display === 'block') highlightAllMatches(false);
           ignoreInput = false;
         }
       }
@@ -1416,21 +1432,28 @@
         }
       }
 
-      function highlightAllMatches() {
+      function highlightAllMatches(preserveIndex = false) {
         if (!marker) return;
+        let oldIndex = currentMatchIndex;
         marker.unmark();
         matches =[];
-        currentMatchIndex = 0;
+        if (!preserveIndex) currentMatchIndex = 0;
         updateFindCounter();
-        const regex = getFindRegex();
-        if (!regex) return;
-        marker.markRegExp(regex, {
+        const str = findInput.value;
+        if (!str) return;
+        marker.mark(str, {
           element: 'mark',
           className: '',
-          each: () => { },
+          caseSensitive: caseSensitive.checked,
+          separateWordSearch: false,
+          accuracy: wholeWord.checked ? 'exactly' : 'partially',
           done: (count) => {
             matches = Array.from(noteContent.querySelectorAll('mark'));
-            currentMatchIndex = 0;
+            if (preserveIndex) {
+              currentMatchIndex = Math.max(0, Math.min(oldIndex, matches.length - 1));
+            } else {
+              currentMatchIndex = 0;
+            }
             highlightCurrentMatch();
           }
         });
@@ -1448,7 +1471,7 @@
 
       function findNext() {
         if (!matches.length) {
-          highlightAllMatches();
+          highlightAllMatches(false);
           if (!matches.length) { alert('No matches'); return; }
         }
         currentMatchIndex = (currentMatchIndex + 1) % matches.length;
@@ -1457,7 +1480,7 @@
 
       function findPrev() {
         if (!matches.length) {
-          highlightAllMatches();
+          highlightAllMatches(false);
           if (!matches.length) { alert('No matches'); return; }
         }
         currentMatchIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
@@ -1474,15 +1497,11 @@
         const replaceText = replaceInput.value;
         const textNode = current.firstChild;
         if (textNode && textNode.nodeType === Node.TEXT_NODE) {
-          const regex = getFindRegex();
-          if (!regex) return;
-          const before = textNode.nodeValue;
-          const after = before.replace(regex, replaceText);
-          textNode.nodeValue = after;
+          textNode.nodeValue = replaceText;
           current.parentNode.normalize();
           recordUndoState();
           saveNote();
-          highlightAllMatches();
+          highlightAllMatches(true);
         }
       }
 
@@ -1497,7 +1516,7 @@
           ignoreInput = false;
           recordUndoState();
           saveNote();
-          highlightAllMatches();
+          highlightAllMatches(false);
         }
       }
 
@@ -1505,12 +1524,39 @@
         if (findBar.style.display === 'none' || findBar.style.display === '') {
           findBar.style.display = 'block';
           findInput.focus();
-          highlightAllMatches();
+          highlightAllMatches(false);
         } else {
           findBar.style.display = 'none';
           if (marker) marker.unmark();
         }
       }
+
+      function downloadCurrentNoteAsTXT() {
+        if (!currentNote || !notes[currentNote]) return;
+        const note = notes[currentNote];
+        const suggested = (note.content.split('\n')[0] || 'Untitled').trim().slice(0, 40) || "Untitled";
+        const fn = prompt(`Filename for TXT:`, suggested);
+        if (fn === null) return;
+        const clean = (fn || "Untitled").trim() || "Untitled";
+        const blob = new Blob([note.content || ''], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = clean + ".txt";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (singleNoteView.style.display === 'block') {
+          if (e.ctrlKey && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            downloadCurrentNoteAsTXT();
+          } else if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+            e.preventDefault();
+            toggleFindBar();
+          }
+        }
+      });
 
       function setupEventListeners() {
         categoryFilter.onchange = () => { currentPage = 1; updateNoteList(); renderSingleNoteSidebarList(true); };
@@ -1528,9 +1574,47 @@
         };
 
         newNoteBtn.onclick = createNote;
+        sidebarNewNoteBtn.onclick = createNote;
         exportBtn.onclick = exportNotes;
         importBtn.onclick = () => importInput.click();
         importInput.onchange = importNotes;
+
+        importTxtBtn.onclick = () => importTxtInput.click();
+        importTxtInput.onchange = (e) => {
+          const files = e.target.files;
+          if (!files.length) return;
+          let processed = 0;
+          for (let file of files) {
+            const reader = new FileReader();
+            reader.onload = async ev => {
+              try {
+                const text = ev.target.result;
+                const noteId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                const title = file.name.replace(/\.[^/.]+$/, "");
+                const note = { 
+                  id: noteId, 
+                  title: title || 'Uploaded Note', 
+                  content: text, 
+                  date: new Date().toISOString(), 
+                  favorite: false, 
+                  category: categories.length ? categories[0] : "all" 
+                };
+                notes[noteId] = note;
+                await saveNoteToDB(note);
+                processed++;
+                if (processed === files.length) {
+                  updateNoteList();
+                  alert('TXT Uploaded successfully!');
+                }
+              } catch (err) {
+                processed++;
+                if (processed === files.length) updateNoteList();
+              }
+            };
+            reader.readAsText(file);
+          }
+        };
+
         backBtn.onclick = showAllNotes;
 
         selectAllCheckbox.onchange = () => {
@@ -1549,7 +1633,7 @@
           clearTimeout(autoSaveTimeout);
           autoSaveTimeout = setTimeout(saveNote, 280);
           updateTotalWordCounter();
-          if (findBar.style.display === 'block') highlightAllMatches();
+          if (findBar.style.display === 'block') highlightAllMatches(false);
         };
 
         undoBtn.onclick = undo;
@@ -1559,15 +1643,15 @@
         findReplaceBtn.onclick = toggleFindBar;
         closeFindBar.onclick = toggleFindBar;
 
-        findInput.addEventListener('input', highlightAllMatches);
+        findInput.addEventListener('input', () => highlightAllMatches(false));
         findInput.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
             findNext();
           }
         });
-        caseSensitive.addEventListener('change', highlightAllMatches);
-        wholeWord.addEventListener('change', highlightAllMatches);
+        caseSensitive.addEventListener('change', () => highlightAllMatches(false));
+        wholeWord.addEventListener('change', () => highlightAllMatches(false));
         findNextBtn.onclick = findNext;
         findPrevBtn.onclick = findPrev;
         replaceBtn.onclick = doReplace;
